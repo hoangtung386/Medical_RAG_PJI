@@ -2,7 +2,7 @@
 
 Hệ thống **Retrieval-Augmented Generation (RAG)** thông minh cho lĩnh vực y khoa, tự động lựa chọn chiến lược truy xuất phù hợp dựa trên ý định của câu hỏi. Hỗ trợ cả tiếng Việt và tiếng Anh.
 
-![RAG Architecture](Medical_RAG_PJI/rag_architecture.png)
+![RAG Architecture](rag_architecture.png)
 
 ## Tính năng chính
 
