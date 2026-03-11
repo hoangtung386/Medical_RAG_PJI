@@ -2,7 +2,7 @@
 
 Hệ thống **Retrieval-Augmented Generation (RAG)** thông minh cho lĩnh vực y khoa, tự động lựa chọn chiến lược truy xuất phù hợp dựa trên ý định của câu hỏi. Hỗ trợ cả tiếng Việt và tiếng Anh.
 
-![RAG Architecture](medical_rag/rag_architecture.png)
+![RAG Architecture](Medical_RAG_PJI/rag_architecture.png)
 
 ## Tính năng chính
 
@@ -53,14 +53,14 @@ Groq LLM (Llama 4 Scout) → Sinh câu trả lời tiếng Việt + nguồn trí
 ### 1. Clone repo
 
 ```bash
-git clone https://github.com/<username>/RAG_medical.git
-cd RAG_medical
+git clone https://github.com/hoangtung386/Medical_RAG_PJI.git
+cd Medical_RAG_PJI
 ```
 
 ### 2. Tạo virtual environment
 
 ```bash
-cd medical_rag
+cd Medical_RAG_PJI
 python -m venv venv
 source venv/bin/activate  # Linux/Mac
 # venv\Scripts\activate   # Windows
@@ -74,7 +74,7 @@ pip install -r requirements.txt
 
 ### 4. Cấu hình environment variables
 
-Tạo file `medical_rag/.env`:
+Tạo file `Medical_RAG_PJI/.env`:
 
 ```env
 GROQ_API_KEY=your_groq_api_key
@@ -138,7 +138,7 @@ curl -X POST http://localhost:8000/ask \
 ## Cấu trúc dự án
 
 ```
-RAG_medical/
+Medical_RAG_PJI/
 ├── Data/                      # Tài liệu PDF y khoa (không được push lên git)
 ├── medical_rag/
 │   ├── core/
@@ -152,6 +152,7 @@ RAG_medical/
 │   ├── ingest_hf.py          # Pipeline ingest bằng HF Vision
 │   └── requirements.txt      # Dependencies
 ├── .gitignore
+├── LICENSE
 └── README.md
 ```
 
