@@ -9,9 +9,11 @@ Usage:
     uvicorn api:app --host 0.0.0.0 --port 8000 --reload
 """
 
+import json
 import logging
 import os
-from typing import Optional
+import time
+from typing import Any, Optional
 
 from dotenv import load_dotenv
 
@@ -22,9 +24,10 @@ logging.getLogger(
 
 from fastapi import FastAPI, HTTPException  # noqa: E402
 from fastapi.middleware.cors import CORSMiddleware  # noqa: E402
-from pydantic import BaseModel  # noqa: E402
+from pydantic import BaseModel, Field  # noqa: E402
 
 from core.engine import AdaptiveRAG  # noqa: E402
+from core.pji_recommendation import PJIRecommendationEngine  # noqa: E402
 
 app = FastAPI(
     title="Medical Adaptive RAG API",
@@ -44,18 +47,22 @@ app.add_middleware(
 )
 
 rag_system = None
+pji_engine = None
 
 
 @app.on_event("startup")
 async def startup():
-    global rag_system
+    global rag_system, pji_engine
     print("Dang khoi tao He thong Medical Adaptive RAG...")
     try:
         rag_system = AdaptiveRAG()
+        pji_engine = PJIRecommendationEngine(rag_system)
         print("Khoi tao thanh cong!")
     except Exception as e:
         print(f"Loi khoi tao: {e}")
 
+
+# ==================== Existing Models ====================
 
 class QueryRequest(BaseModel):
     question: str
@@ -74,6 +81,82 @@ class HealthResponse(BaseModel):
     rag_initialized: bool
 
 
+# ==================== Recommendation Models ====================
+
+class RecommendationOptions(BaseModel):
+    language: str = "vi"
+    include_citations: bool = True
+    top_k: int = 5
+
+
+class RecommendationRequest(BaseModel):
+    request_id: str
+    trigger_type: str
+    episode_id: int
+    snapshot_id: int
+    snapshot_data_json: dict[str, Any]
+    options: RecommendationOptions = RecommendationOptions()
+
+
+class ModelInfo(BaseModel):
+    name: str
+    version: str
+
+
+class RecommendationItem(BaseModel):
+    client_item_key: Optional[str] = None
+    category: str
+    title: str
+    priority_order: int
+    is_primary: bool
+    item_json: dict[str, Any]
+
+
+class CitationItem(BaseModel):
+    client_item_key: Optional[str] = None
+    source_type: str
+    source_title: str
+    source_uri: Optional[str] = None
+    snippet: str
+    relevance_score: float
+    cited_for: Optional[str] = None
+
+
+class RecommendationResponse(BaseModel):
+    request_id: str
+    status: str
+    model: ModelInfo
+    latency_ms: int
+    assessment_json: Optional[dict[str, Any]] = None
+    explanation_json: Optional[dict[str, Any]] = None
+    warnings_json: Optional[list[dict[str, Any]]] = None
+    items: list[RecommendationItem]
+    citations: list[CitationItem] = []
+
+
+# ==================== Chat Models ====================
+
+class ChatMessage(BaseModel):
+    role: str
+    content: str
+
+
+class ChatRequest(BaseModel):
+    question: str
+    episode_summary: Optional[dict[str, Any]] = None
+    recommendation_context: Optional[dict[str, Any]] = None
+    chat_history: Optional[list[ChatMessage]] = None
+
+
+class ChatResponse(BaseModel):
+    answer: str
+    latency_ms: int
+    tokens_used: Optional[int] = None
+    references: Optional[list[dict[str, Any]]] = None
+
+
+# ==================== Existing Endpoints ====================
+
 @app.get("/health", response_model=HealthResponse)
 async def health_check():
     """Kiem tra trang thai server."""
@@ -85,25 +168,11 @@ async def health_check():
 
 @app.post("/ask", response_model=QueryResponse)
 async def ask_question(request: QueryRequest):
-    """Endpoint chinh - Hoi cau hoi y te.
-
-    Request body:
-    - question: Cau hoi (tieng Viet hoac tieng Anh)
-    - user_context: Thong tin benh nhan (tuy chon)
-    - use_web_search: Bat/tat tim kiem web (mac dinh: true)
-
-    Response:
-    - answer: Cau tra loi
-    - category: Chien luoc duoc su dung
-    - sources: Danh sach nguon tham khao
-    """
+    """Endpoint chinh - Hoi cau hoi y te."""
     if not rag_system:
         raise HTTPException(
             status_code=503,
-            detail=(
-                "He thong chua duoc khoi tao. "
-                "Kiem tra API keys."
-            ),
+            detail="He thong chua duoc khoi tao. Kiem tra API keys.",
         )
 
     if not request.question.strip():
@@ -129,6 +198,98 @@ async def ask_question(request: QueryRequest):
         raise HTTPException(
             status_code=500,
             detail=f"Loi xu ly cau hoi: {str(e)}",
+        )
+
+
+# ==================== Recommendation Endpoint ====================
+
+@app.post("/api/v1/recommendation/generate", response_model=RecommendationResponse)
+async def generate_recommendation(request: RecommendationRequest):
+    """Generate PJI recommendation based on clinical snapshot data.
+
+    Receives normalized clinical data, runs RAG pipeline,
+    and returns structured recommendation items with citations.
+    """
+    if not rag_system or not pji_engine:
+        raise HTTPException(
+            status_code=503,
+            detail="He thong AI chua san sang.",
+        )
+
+    try:
+        start_time = time.time()
+        result = pji_engine.generate_recommendation(
+            snapshot_data=request.snapshot_data_json,
+            options=request.options.model_dump(),
+        )
+        latency_ms = int((time.time() - start_time) * 1000)
+
+        return RecommendationResponse(
+            request_id=request.request_id,
+            status="SUCCESS",
+            model=ModelInfo(
+                name=pji_engine.model_name,
+                version=pji_engine.model_version,
+            ),
+            latency_ms=latency_ms,
+            assessment_json=result.get("assessment_json"),
+            explanation_json=result.get("explanation_json"),
+            warnings_json=result.get("warnings_json"),
+            items=result.get("items", []),
+            citations=result.get("citations", []),
+        )
+
+    except Exception as e:
+        logging.error(f"Recommendation generation failed: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Loi tao recommendation: {str(e)}",
+        )
+
+
+# ==================== Chat Endpoint ====================
+
+@app.post("/api/v1/chat", response_model=ChatResponse)
+async def chat(request: ChatRequest):
+    """Chat with AI about PJI clinical decisions.
+
+    Supports episode context, recommendation context,
+    and chat history for contextual conversations.
+    """
+    if not rag_system or not pji_engine:
+        raise HTTPException(
+            status_code=503,
+            detail="He thong AI chua san sang.",
+        )
+
+    if not request.question.strip():
+        raise HTTPException(
+            status_code=400,
+            detail="Cau hoi khong duoc de trong.",
+        )
+
+    try:
+        start_time = time.time()
+        result = pji_engine.chat(
+            question=request.question,
+            episode_summary=request.episode_summary,
+            recommendation_context=request.recommendation_context,
+            chat_history=[m.model_dump() for m in request.chat_history] if request.chat_history else None,
+        )
+        latency_ms = int((time.time() - start_time) * 1000)
+
+        return ChatResponse(
+            answer=result.get("answer", ""),
+            latency_ms=latency_ms,
+            tokens_used=result.get("tokens_used"),
+            references=result.get("references"),
+        )
+
+    except Exception as e:
+        logging.error(f"Chat failed: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Loi chat: {str(e)}",
         )
 
 
