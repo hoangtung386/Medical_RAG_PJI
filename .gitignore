@@ -25,7 +25,8 @@ Data/
 # OS
 .DS_Store
 
+# Test / cache
+.pytest_cache/
+
 # Misc
 README1.md
-REFACTORING_GUIDE.md
-.pytest_cache/
