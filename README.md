@@ -39,7 +39,6 @@ Chi tiết cấu trúc JSON xem file [`api_contract.json`](api_contract.json).
 | Reranker | Cohere rerank-multilingual-v3.0 |
 | Vector DB | Zilliz Cloud (managed Milvus) |
 | Web Search | Tavily (fallback khi ít tài liệu nội bộ) |
-| PDF Parsing | Google Gemini Flash 2.0 / HuggingFace Vision OCR |
 | Framework | LangChain, FastAPI |
 | Package Manager | uv |
 
@@ -54,8 +53,6 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 # Windows
 powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
 ```
-
-> Xem thêm: https://docs.astral.sh/uv/getting-started/installation/
 
 ### 2. Clone repo
 
@@ -88,8 +85,6 @@ ZILLIZ_API_KEY=your_zilliz_api_key       # Vector DB auth token
 
 # === TÙY CHỌN ===
 TAVILY_API_KEY=your_tavily_api_key       # Web search fallback — https://tavily.com
-GEMINI_API_KEY=your_gemini_api_key       # Dùng cho ingest bằng Gemini — https://aistudio.google.com/apikey
-HF_TOKEN=your_huggingface_token          # Dùng cho ingest bằng HF Vision — https://huggingface.co/settings/tokens
 ```
 
 ## Nạp tài liệu y khoa (PDF → Vector DB)
@@ -120,43 +115,15 @@ Medical_RAG_PJI/
 
 ### Bước 3 — Chạy pipeline ingest
 
-Có 3 phương pháp tùy chọn:
-
-#### Option A: PyPDFLoader — Local (khuyến nghị, nhanh nhất)
-
-Đọc PDF bằng thư viện local, **không cần API key**, chạy offline hoàn toàn.
-
 ```bash
 uv run python3 ingest_local.py
 ```
 
 **Pipeline chạy qua 4 bước:**
-1. Đọc từng PDF bằng PyPDFLoader (local, miễn phí)
+1. Đọc từng PDF bằng PyPDFLoader (local, miễn phí, không cần API key)
 2. Chia nhỏ text thành chunk 1000 ký tự (overlap 200)
 3. Embedding mỗi chunk bằng Cohere `embed-multilingual-v3.0`
 4. Insert batch vào Zilliz Cloud (collection: `medical_rag_docs`)
-
-> **Lưu ý:** PyPDFLoader đọc text-based PDF tốt. Với scanned PDF (ảnh chụp) sẽ không trích xuất được text — dùng Option B hoặc C cho trường hợp này.
-
-#### Option B: Google Gemini Flash (chất lượng cao nhất)
-
-Gemini Flash 2.0 xử lý tốt bảng biểu, layout phức tạp, scanned PDF. Cần `GEMINI_API_KEY` (free tier giới hạn ~15 file/ngày).
-
-```bash
-uv run python3 ingest_gemini.py
-```
-
-#### Option C: HuggingFace Vision OCR
-
-Chuyển mỗi trang PDF thành ảnh PNG, gửi lên model Vision để "đọc". Miễn phí ~1000 requests/ngày.
-
-```bash
-# Yêu cầu: HF_TOKEN trong .env + cài poppler-utils
-sudo apt install poppler-utils  # Linux
-# brew install poppler          # macOS
-
-uv run python3 ingest_hf.py
-```
 
 ### Bước 4 — Xác nhận dữ liệu đã được nạp
 
@@ -298,10 +265,7 @@ Medical_RAG_PJI/
 ├── api_contract.json              # Mẫu JSON giao tiếp với web backend
 ├── pyproject.toml                 # Cấu hình dự án & dependencies (dùng với uv)
 ├── uv.lock                       # Lock file (uv tự sinh, đảm bảo reproducible)
-├── requirements.txt               # Dependencies (fallback cho pip)
-├── ingest_local.py                # Pipeline nạp PDF local (PyPDFLoader, khuyến nghị)
-├── ingest_gemini.py               # Pipeline nạp PDF bằng Gemini Flash
-├── ingest_hf.py                   # Pipeline nạp PDF bằng HF Vision
+├── ingest_local.py                # Pipeline nạp PDF vào Vector DB
 ├── core/
 │   ├── engine.py                  # AdaptiveRetriever + AdaptiveRAG
 │   ├── classifier.py              # Phân loại ý định câu hỏi (4 loại)

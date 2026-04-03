@@ -14,3 +14,4 @@ venv/
 # Environment variables
 .env
 .claude/
+README1.md
