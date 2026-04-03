@@ -1,0 +1,61 @@
+{
+  "snapshot_metadata": {
+    "episode_id": 1001
+  },
+  "patient_demographics": {
+    "gender": "MALE"
+  },
+  "medical_history": {
+    "medical_history": "Thay khop hang phai 3 nam truoc",
+    "allergies": {
+      "is_allergy": true,
+      "allergy_note": "Di ung Penicillin"
+    }
+  },
+  "clinical_records": {
+    "symptoms": {
+      "fever": true,
+      "pain": true,
+      "sinus_tract": false
+    },
+    "infection_assessment": {
+      "suspected_infection_type": "CHRONIC",
+      "implant_stability": "UNSTABLE",
+      "prosthesis_joint": "HIP_RIGHT"
+    }
+  },
+  "lab_results": {
+    "latest": {
+      "inflammatory_markers_blood": {
+        "crp": 95.3,
+        "esr": 85,
+        "d_dimer": 1.85,
+        "serum_il6": 45.2,
+        "alpha_defensin": "POSITIVE"
+      },
+      "synovial_fluid": {
+        "synovial_wbc": 52000,
+        "synovial_pmn": 92.0
+      },
+      "biochemical_data": {
+        "creatinine": 95,
+        "alt": 28,
+        "ast": 32
+      }
+    }
+  },
+  "culture_results": {
+    "items": [
+      {
+        "name": "Staphylococcus aureus",
+        "result_status": "POSITIVE",
+        "sensitivities": []
+      },
+      {
+        "organism_name": "Staphylococcus aureus",
+        "result_status": "POSITIVE",
+        "sensitivities": []
+      }
+    ]
+  }
+}
