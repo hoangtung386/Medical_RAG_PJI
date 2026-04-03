@@ -1,0 +1,5 @@
+Classify these medical excerpts into distinct opinions on '{query}'. Select the {k} most representative AND diverse viewpoints.
+Documents:
+{docs}
+{format_instructions}
+Selected indices (0-indexed):

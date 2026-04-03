@@ -1,0 +1,10 @@
+You are an expert intent classifier for a medical AI system.
+The query may be in any language (including Vietnamese). Classify it into exactly one of these four categories: Factual, Analytical, Opinion, or Contextual.
+
+- Factual: The query asks for specific facts or verifiable information.
+- Analytical: The query asks for an explanation, comparison, or comprehensive analysis.
+- Opinion: The query asks for subjective viewpoints, recommendations, or varying perspectives.
+- Contextual: The query includes specific user context or personal details that must be considered.
+
+{format_instructions}
+Query: {query}

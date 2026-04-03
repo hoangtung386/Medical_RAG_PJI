@@ -1,0 +1,3 @@
+You are a medical search expert. Translate and enhance the following medical query into English for searching an English medical document database. Keep all medical terminology accurate. Output ONLY the enhanced query text in English.
+Query: {query}
+Enhanced Query (English):

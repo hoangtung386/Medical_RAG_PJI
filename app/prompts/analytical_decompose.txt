@@ -1,0 +1,3 @@
+Break down the following complex medical query into {k} different sub-questions for comprehensive analysis. Output all sub-questions in English regardless of input language.
+{format_instructions}
+Query: {query}
