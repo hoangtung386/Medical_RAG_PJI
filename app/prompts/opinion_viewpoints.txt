@@ -1,0 +1,2 @@
+Identify {k} distinctly different viewpoints, theories, or medical opinions regarding the following topic. Output as a numbered list in English.
+Topic: {query}

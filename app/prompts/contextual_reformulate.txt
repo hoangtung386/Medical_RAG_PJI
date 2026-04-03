@@ -1,0 +1,4 @@
+Given the patient/user context: '{context}'
+Reformulate this medical query to specifically address the user's needs: '{query}'
+Output the reformulated query in English.
+Output ONLY the Reformulated Query (English):
