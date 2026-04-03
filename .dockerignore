@@ -8,7 +8,9 @@ __pycache__/
 .claude/
 data/
 Data/
+tests/
+docs/
 README.md
-README1.md
+REFACTORING_GUIDE.md
 LICENSE
 *.png

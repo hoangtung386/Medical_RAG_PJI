@@ -1,11 +1,10 @@
-# Python cache
+# Python
 __pycache__/
 *.pyc
 *.pyo
-
-# Data folder
-Data/
-data/
+*.egg-info/
+dist/
+build/
 
 # Virtual environment
 venv/
@@ -13,5 +12,20 @@ venv/
 
 # Environment variables
 .env
+
+# Data folder (PDFs — not version-controlled)
+data/
+Data/
+
+# IDE / editor
 .claude/
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+
+# Misc
 README1.md
+REFACTORING_GUIDE.md
+.pytest_cache/
