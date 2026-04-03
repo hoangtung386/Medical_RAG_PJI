@@ -121,23 +121,11 @@ uv sync
 ### Bước 3 — Tạo file `.env`
 
 ```env
-# === BẮT BUỘC ===
-GROQ_API_KEY=your_groq_api_key           # https://console.groq.com/keys
-COHERE_API_KEY=your_cohere_api_key       # https://dashboard.cohere.com/api-keys
-ZILLIZ_URI=your_zilliz_cloud_uri         # https://cloud.zilliz.com
+GROQ_API_KEY=your_groq_api_key
+COHERE_API_KEY=your_cohere_api_key
+ZILLIZ_URI=your_zilliz_cloud_uri
 ZILLIZ_API_KEY=your_zilliz_api_key
-
-# === TÙY CHỌN ===
-TAVILY_API_KEY=your_tavily_api_key       # https://tavily.com (web search fallback)
 ```
-
-| Key | Lấy ở đâu | Mục đích |
-|-----|-----------|----------|
-| `GROQ_API_KEY` | [console.groq.com/keys](https://console.groq.com/keys) | LLM inference (Llama 3.1-8B + Llama 4 Scout 17B) |
-| `COHERE_API_KEY` | [dashboard.cohere.com/api-keys](https://dashboard.cohere.com/api-keys) | Embedding (embed-multilingual-v3.0) + Reranker |
-| `ZILLIZ_URI` | [cloud.zilliz.com](https://cloud.zilliz.com) → Cluster → Connect | Vector Database endpoint |
-| `ZILLIZ_API_KEY` | [cloud.zilliz.com](https://cloud.zilliz.com) → Cluster → Connect | Vector Database auth token |
-| `TAVILY_API_KEY` | [tavily.com](https://tavily.com) | Web search fallback (tùy chọn) |
 
 ---
 
@@ -146,11 +134,6 @@ TAVILY_API_KEY=your_tavily_api_key       # https://tavily.com (web search fallba
 > **Bước này chỉ cần làm 1 lần** (hoặc khi thêm tài liệu mới). Sau khi nạp xong, dữ liệu nằm trên Zilliz Cloud — server API chỉ đọc từ đó.
 
 ### 1. Tạo tài khoản Zilliz Cloud
-
-1. Truy cập [https://cloud.zilliz.com](https://cloud.zilliz.com) → đăng ký miễn phí
-2. Tạo **Cluster** mới (Free Tier đủ dùng)
-3. Vào **Connect** để lấy URI + API Key → điền vào `.env`
-4. Không cần tạo collection thủ công — script tự tạo `medical_rag_docs`
 
 ### 2. Chuẩn bị tài liệu PDF
 
