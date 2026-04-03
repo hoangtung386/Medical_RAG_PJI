@@ -1,6 +1,24 @@
-# PJI Clinical Decision Support — Backend API
+# PJI Clinical Decision Support — Backend AI
 
-Backend AI cho hệ thống hỗ trợ quyết định lâm sàng **Nhiễm trùng Khớp giả (Periprosthetic Joint Infection — PJI)**. Nhận dữ liệu lâm sàng từ web backend, chạy qua pipeline RAG, trả về phác đồ điều trị + trích dẫn bằng chứng + kiểm tra dữ liệu thiếu.
+Backend AI cho hệ thống hỗ trợ quyết định lâm sàng **Nhiễm trùng Khớp giả (Periprosthetic Joint Infection — PJI)**.
+
+Nhận dữ liệu lâm sàng từ web backend, chạy qua pipeline RAG, trả về phác đồ điều trị + trích dẫn bằng chứng + kiểm tra dữ liệu thiếu.
+
+---
+
+## Mục lục
+
+- [Tổng quan hệ thống](#tổng-quan-hệ-thống)
+- [Tech Stack](#tech-stack)
+- [Cấu trúc dự án](#cấu-trúc-dự-án)
+- [Hướng dẫn cài đặt (Development)](#hướng-dẫn-cài-đặt-development)
+- [Nạp tài liệu y khoa (PDF → Vector DB)](#nạp-tài-liệu-y-khoa-pdf--vector-db)
+- [Chạy server (Development)](#chạy-server-development)
+- [Deploy bằng Docker (Production)](#deploy-bằng-docker-production)
+- [API Endpoints](#api-endpoints)
+- [Pipeline xử lý chi tiết](#pipeline-xử-lý-chi-tiết)
+
+---
 
 ## Tổng quan hệ thống
 
@@ -25,10 +43,12 @@ snapshot_data_json ──── POST ────▶  /api/v1/process-snapshot
 | # | Response | Mô tả |
 |---|----------|-------|
 | 1 | `ai_recommendation_items` | 4 loại phác đồ: `DIAGNOSTIC_TEST` (chẩn đoán ICM 2018), `SYSTEMIC_ANTIBIOTIC` (kháng sinh toàn thân), `LOCAL_ANTIBIOTIC` (kháng sinh tại chỗ), `SURGERY_PROCEDURE` (phẫu thuật) |
-| 2 | `ai_rag_citations` | Trích dẫn tài liệu bằng chứng (guideline, meta-analysis, journal article...) liên kết đến từng recommendation item qua `item_id` |
+| 2 | `ai_rag_citations` | Trích dẫn tài liệu bằng chứng (guideline, meta-analysis, journal article...) liên kết đến từng item qua `item_id` |
 | 3 | `data_completeness` | Kiểm tra deterministic (không qua LLM) dữ liệu đầu vào thiếu gì, phân loại theo `CRITICAL` / `HIGH` / `MEDIUM` |
 
 Chi tiết cấu trúc JSON xem file [`api_contract.json`](api_contract.json).
+
+---
 
 ## Tech Stack
 
@@ -41,10 +61,44 @@ Chi tiết cấu trúc JSON xem file [`api_contract.json`](api_contract.json).
 | Web Search | Tavily (fallback khi ít tài liệu nội bộ) |
 | Framework | LangChain, FastAPI |
 | Package Manager | uv |
+| Containerization | Docker |
 
-## Cài đặt
+---
 
-### 1. Cài uv (package manager)
+## Cấu trúc dự án
+
+```
+Medical_RAG_PJI/
+├── api.py                         # FastAPI server — endpoint chính
+├── api_contract.json              # Mẫu JSON giao tiếp với web backend
+├── ingest_local.py                # Pipeline nạp PDF vào Vector DB
+│
+├── core/
+│   ├── engine.py                  # AdaptiveRetriever + AdaptiveRAG
+│   ├── classifier.py              # Phân loại ý định câu hỏi (4 loại)
+│   ├── strategies.py              # 4 chiến lược truy xuất thích ứng
+│   ├── llm_config.py              # Khởi tạo LLM (Groq) & Embedding (Cohere)
+│   ├── pji_recommendation.py      # Engine sinh phác đồ PJI + citations
+│   └── data_completeness.py       # Kiểm tra dữ liệu thiếu (deterministic)
+│
+├── Dockerfile                     # Build image cho production
+├── docker-compose.yml             # Orchestration (chạy chung với web backend)
+├── .dockerignore                  # Loại file không cần khi build image
+│
+├── pyproject.toml                 # Cấu hình dự án & dependencies (dùng với uv)
+├── uv.lock                       # Lock file (đảm bảo reproducible)
+├── requirements.txt               # Dependencies cho pip / Docker
+│
+├── data/                          # Thư mục chứa PDF y khoa (không push git)
+├── .env                           # API keys (không push git)
+└── .gitignore
+```
+
+---
+
+## Hướng dẫn cài đặt (Development)
+
+### Bước 1 — Cài uv
 
 ```bash
 # Linux / macOS
@@ -54,55 +108,51 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
 ```
 
-### 2. Clone repo
+### Bước 2 — Clone repo & cài dependencies
 
 ```bash
 git clone https://github.com/hoangtung386/Medical_RAG_PJI.git
 cd Medical_RAG_PJI
-```
-
-### 3. Cài đặt dependencies
-
-```bash
 uv sync
 ```
 
-`uv sync` sẽ tự động:
-- Tạo virtual environment `.venv/`
-- Cài đặt đúng phiên bản Python (nếu chưa có)
-- Cài toàn bộ dependencies từ `pyproject.toml` + `uv.lock`
+`uv sync` sẽ tự động tạo `.venv/`, cài đúng Python và toàn bộ dependencies.
 
-### 4. Cấu hình environment variables
-
-Tạo file `.env` tại thư mục gốc dự án:
+### Bước 3 — Tạo file `.env`
 
 ```env
 # === BẮT BUỘC ===
-GROQ_API_KEY=your_groq_api_key           # LLM inference — https://console.groq.com/keys
-COHERE_API_KEY=your_cohere_api_key       # Embedding + Reranker — https://dashboard.cohere.com/api-keys
-ZILLIZ_URI=your_zilliz_cloud_uri         # Vector DB endpoint — https://cloud.zilliz.com
-ZILLIZ_API_KEY=your_zilliz_api_key       # Vector DB auth token
+GROQ_API_KEY=your_groq_api_key           # https://console.groq.com/keys
+COHERE_API_KEY=your_cohere_api_key       # https://dashboard.cohere.com/api-keys
+ZILLIZ_URI=your_zilliz_cloud_uri         # https://cloud.zilliz.com
+ZILLIZ_API_KEY=your_zilliz_api_key
 
 # === TÙY CHỌN ===
-TAVILY_API_KEY=your_tavily_api_key       # Web search fallback — https://tavily.com
+TAVILY_API_KEY=your_tavily_api_key       # https://tavily.com (web search fallback)
 ```
+
+| Key | Lấy ở đâu | Mục đích |
+|-----|-----------|----------|
+| `GROQ_API_KEY` | [console.groq.com/keys](https://console.groq.com/keys) | LLM inference (Llama 3.1-8B + Llama 4 Scout 17B) |
+| `COHERE_API_KEY` | [dashboard.cohere.com/api-keys](https://dashboard.cohere.com/api-keys) | Embedding (embed-multilingual-v3.0) + Reranker |
+| `ZILLIZ_URI` | [cloud.zilliz.com](https://cloud.zilliz.com) → Cluster → Connect | Vector Database endpoint |
+| `ZILLIZ_API_KEY` | [cloud.zilliz.com](https://cloud.zilliz.com) → Cluster → Connect | Vector Database auth token |
+| `TAVILY_API_KEY` | [tavily.com](https://tavily.com) | Web search fallback (tùy chọn) |
+
+---
 
 ## Nạp tài liệu y khoa (PDF → Vector DB)
 
-Trước khi hệ thống AI có thể trả lời, cần nạp (ingest) các tài liệu y khoa PDF vào **Zilliz Cloud** (dịch vụ Vector Database trên cloud, dựa trên Milvus).
+> **Bước này chỉ cần làm 1 lần** (hoặc khi thêm tài liệu mới). Sau khi nạp xong, dữ liệu nằm trên Zilliz Cloud — server API chỉ đọc từ đó.
 
-### Bước 1 — Tạo tài khoản Zilliz Cloud
+### 1. Tạo tài khoản Zilliz Cloud
 
-1. Truy cập [https://cloud.zilliz.com](https://cloud.zilliz.com) và đăng ký tài khoản miễn phí
-2. Tạo một **Cluster** mới (Free Tier đủ dùng cho dự án này)
-3. Sau khi cluster khởi tạo xong, vào **Connect** để lấy:
-   - **URI** (dạng `https://in03-xxxxxxx.api.gcp-us-west1.zillizcloud.com`) → điền vào `ZILLIZ_URI`
-   - **API Key** → điền vào `ZILLIZ_API_KEY`
-4. Không cần tạo collection thủ công — script ingest sẽ tự tạo collection `medical_rag_docs`
+1. Truy cập [https://cloud.zilliz.com](https://cloud.zilliz.com) → đăng ký miễn phí
+2. Tạo **Cluster** mới (Free Tier đủ dùng)
+3. Vào **Connect** để lấy URI + API Key → điền vào `.env`
+4. Không cần tạo collection thủ công — script tự tạo `medical_rag_docs`
 
-### Bước 2 — Chuẩn bị tài liệu PDF
-
-Tạo thư mục `data/` và đặt các file PDF hướng dẫn y khoa (guidelines PJI, IDSA, ICM 2018...) vào trong:
+### 2. Chuẩn bị tài liệu PDF
 
 ```
 Medical_RAG_PJI/
@@ -113,35 +163,121 @@ Medical_RAG_PJI/
     └── ... (các tài liệu y khoa khác)
 ```
 
-### Bước 3 — Chạy pipeline ingest
+### 3. Chạy pipeline ingest
 
 ```bash
 uv run python3 ingest_local.py
 ```
 
-**Pipeline chạy qua 4 bước:**
-1. Đọc từng PDF bằng PyPDFLoader (local, miễn phí, không cần API key)
+Pipeline chạy qua 4 bước:
+1. Đọc từng PDF bằng PyPDFLoader (local, miễn phí)
 2. Chia nhỏ text thành chunk 1000 ký tự (overlap 200)
 3. Embedding mỗi chunk bằng Cohere `embed-multilingual-v3.0`
 4. Insert batch vào Zilliz Cloud (collection: `medical_rag_docs`)
 
-### Bước 4 — Xác nhận dữ liệu đã được nạp
+### 4. Xác nhận
 
-Sau khi ingest xong, vào Zilliz Cloud Console → chọn cluster → chọn collection `medical_rag_docs` → kiểm tra số lượng entities đã insert.
+Vào Zilliz Cloud Console → chọn cluster → collection `medical_rag_docs` → kiểm tra **Loaded Entities** > 0.
 
-## Chạy server
+---
+
+## Chạy server (Development)
 
 ```bash
 # Chạy trực tiếp
 uv run python3 api.py
 
-# Hoặc dùng uvicorn (hot reload)
+# Hoặc dùng uvicorn (hot reload khi sửa code)
 uv run uvicorn api:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-Server khởi tạo xong sẽ in: `Khoi tao thanh cong!`
+Server sẵn sàng khi in: `Khoi tao thanh cong!`
 
-Truy cập tài liệu API tự động tại: [http://localhost:8000/docs](http://localhost:8000/docs)
+Swagger UI: [http://localhost:8000/docs](http://localhost:8000/docs)
+
+---
+
+## Deploy bằng Docker (Production)
+
+### Yêu cầu
+- Docker & Docker Compose đã cài trên server
+
+### Bước 1 — Chuẩn bị file `.env`
+
+Tạo file `.env` tại thư mục gốc dự án (nội dung giống phần [Tạo file .env](#bước-3--tạo-file-env) ở trên). File này **không được push lên git** — cần tạo thủ công trên server.
+
+### Bước 2 — Build Docker image
+
+```bash
+docker compose build
+```
+
+Image bao gồm: Python 3.11 + tất cả dependencies + source code. Không chứa `.env`, `data/`, hay `.venv/`.
+
+### Bước 3 — Chạy container
+
+```bash
+# Chạy nền (detached)
+docker compose up -d
+
+# Xem logs
+docker compose logs -f ai-backend
+
+# Kiểm tra trạng thái
+docker compose ps
+```
+
+### Bước 4 — Kiểm tra hoạt động
+
+```bash
+# Health check
+curl http://localhost:8000/health
+# → {"status":"ok","rag_initialized":true}
+```
+
+### Các lệnh Docker thường dùng
+
+```bash
+# Dừng container
+docker compose down
+
+# Rebuild khi có thay đổi code
+docker compose build && docker compose up -d
+
+# Xem logs realtime
+docker compose logs -f ai-backend
+
+# Restart container
+docker compose restart ai-backend
+```
+
+### Tích hợp với web backend
+
+Nếu web backend cũng chạy Docker, thêm service `ai-backend` vào file `docker-compose.yml` chung:
+
+```yaml
+services:
+  # ... các service web backend khác ...
+
+  ai-backend:
+    build: ./Medical_RAG_PJI      # đường dẫn đến repo này
+    container_name: pji-ai-backend
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./Medical_RAG_PJI/.env
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+```
+
+Web backend gọi AI qua: `http://ai-backend:8000/api/v1/process-snapshot` (trong cùng Docker network) hoặc `http://localhost:8000/api/v1/process-snapshot` (từ host).
+
+---
 
 ## API Endpoints
 
@@ -155,9 +291,13 @@ curl http://localhost:8000/health
 { "status": "ok", "rag_initialized": true }
 ```
 
+---
+
 ### `POST /api/v1/process-snapshot` — Xử lý dữ liệu lâm sàng (endpoint chính)
 
 Nhận `snapshot_data_json` từ web backend, trả về phác đồ + trích dẫn + kiểm tra dữ liệu.
+
+**Request:**
 
 ```bash
 curl -X POST http://localhost:8000/api/v1/process-snapshot \
@@ -198,7 +338,7 @@ curl -X POST http://localhost:8000/api/v1/process-snapshot \
   }'
 ```
 
-**Response chứa 3 phần chính:**
+**Response:**
 
 ```json
 {
@@ -242,6 +382,8 @@ curl -X POST http://localhost:8000/api/v1/process-snapshot \
 }
 ```
 
+---
+
 ### `POST /api/v1/chat` — Chat hỏi đáp với AI
 
 Dùng cho bác sĩ hỏi thêm về ca bệnh sau khi đã có recommendation.
@@ -257,27 +399,7 @@ curl -X POST http://localhost:8000/api/v1/chat \
   }'
 ```
 
-## Cấu trúc dự án
-
-```
-Medical_RAG_PJI/
-├── api.py                         # FastAPI server — endpoint chính
-├── api_contract.json              # Mẫu JSON giao tiếp với web backend
-├── pyproject.toml                 # Cấu hình dự án & dependencies (dùng với uv)
-├── uv.lock                       # Lock file (uv tự sinh, đảm bảo reproducible)
-├── ingest_local.py                # Pipeline nạp PDF vào Vector DB
-├── core/
-│   ├── engine.py                  # AdaptiveRetriever + AdaptiveRAG
-│   ├── classifier.py              # Phân loại ý định câu hỏi (4 loại)
-│   ├── strategies.py              # 4 chiến lược truy xuất thích ứng
-│   ├── llm_config.py              # Khởi tạo LLM (Groq) & Embedding (Cohere)
-│   ├── pji_recommendation.py      # Engine sinh phác đồ PJI + citations
-│   └── data_completeness.py       # Kiểm tra dữ liệu thiếu (deterministic)
-├── data/                          # Thư mục chứa PDF y khoa (không push git)
-├── .venv/                         # Virtual environment (uv tự tạo, không push git)
-├── .env                           # API keys (không push git)
-└── .gitignore
-```
+---
 
 ## Pipeline xử lý chi tiết
 
@@ -303,6 +425,8 @@ snapshot_data_json (từ web backend)
                ├─ SURGERY_PROCEDURE:    Strategy (DAIR/1-stage/2-stage), stages, risks
                └─ Citations:            Nguồn tài liệu bằng chứng cho từng item
 ```
+
+---
 
 ## License
 
