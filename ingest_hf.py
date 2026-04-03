@@ -34,7 +34,7 @@ logging.getLogger(
     "langchain_milvus.vectorstores.milvus"
 ).setLevel(logging.ERROR)
 
-DATA_DIR = "/home/sotatek/Downloads/RAG_medical/Data"
+DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
 COLLECTION_NAME = "medical_rag_docs"
 
 HF_MODEL = "meta-llama/Llama-3.2-11B-Vision-Instruct"

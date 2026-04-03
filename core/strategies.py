@@ -1,7 +1,7 @@
 import os
 from typing import List, Optional
 
-from langchain_classic.retrievers.contextual_compression import (
+from langchain.retrievers.contextual_compression import (
     ContextualCompressionRetriever,
 )
 from langchain_cohere import CohereRerank

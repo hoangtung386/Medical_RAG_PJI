@@ -5,9 +5,11 @@ __pycache__/
 
 # Data folder
 Data/
+data/
 
 # Virtual environment
 venv/
+.venv/
 
 # Environment variables
 .env
