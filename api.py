@@ -1,6 +1,10 @@
-"""FastAPI server for Medical Adaptive RAG.
+"""FastAPI server for PJI Clinical Decision Support.
 
-Provides REST API endpoints for web app integration.
+Backend API that receives clinical snapshot data from the web backend,
+processes it through RAG pipeline, and returns:
+1. ai_recommendation_items (DIAGNOSTIC_TEST, SYSTEMIC_ANTIBIOTIC, LOCAL_ANTIBIOTIC, SURGERY_PROCEDURE)
+2. ai_rag_citations (evidence citations linked to items)
+3. data_completeness (deterministic completeness check)
 
 Usage:
     python api.py
@@ -11,7 +15,6 @@ Usage:
 
 import json
 import logging
-import os
 import time
 from typing import Any, Optional
 
@@ -26,16 +29,14 @@ from fastapi import FastAPI, HTTPException  # noqa: E402
 from fastapi.middleware.cors import CORSMiddleware  # noqa: E402
 from pydantic import BaseModel, Field  # noqa: E402
 
+from core.data_completeness import check_data_completeness  # noqa: E402
 from core.engine import AdaptiveRAG  # noqa: E402
 from core.pji_recommendation import PJIRecommendationEngine  # noqa: E402
 
 app = FastAPI(
-    title="Medical Adaptive RAG API",
-    description=(
-        "API tro ly y te thong minh voi kha nang tu dong "
-        "lua chon chien luoc truy xuat"
-    ),
-    version="1.0.0",
+    title="PJI Clinical Decision Support API",
+    description="API ho tro quyet dinh lam sang nhiem trung khop gia (PJI)",
+    version="2.0.0",
 )
 
 app.add_middleware(
@@ -53,7 +54,7 @@ pji_engine = None
 @app.on_event("startup")
 async def startup():
     global rag_system, pji_engine
-    print("Dang khoi tao He thong Medical Adaptive RAG...")
+    print("Dang khoi tao He thong PJI Clinical Decision Support...")
     try:
         rag_system = AdaptiveRAG()
         pji_engine = PJIRecommendationEngine(rag_system)
@@ -62,40 +63,23 @@ async def startup():
         print(f"Loi khoi tao: {e}")
 
 
-# ==================== Existing Models ====================
-
-class QueryRequest(BaseModel):
-    question: str
-    user_context: Optional[str] = None
-    use_web_search: bool = True
-
-
-class QueryResponse(BaseModel):
-    answer: str
-    category: str
-    sources: list[str]
-
+# ==================== Pydantic Models ====================
 
 class HealthResponse(BaseModel):
     status: str
     rag_initialized: bool
 
 
-# ==================== Recommendation Models ====================
-
-class RecommendationOptions(BaseModel):
-    language: str = "vi"
-    include_citations: bool = True
-    top_k: int = 5
-
-
-class RecommendationRequest(BaseModel):
+class ProcessSnapshotRequest(BaseModel):
+    """Request matching section_1_input of the API contract."""
     request_id: str
-    trigger_type: str
     episode_id: int
     snapshot_id: int
     snapshot_data_json: dict[str, Any]
-    options: RecommendationOptions = RecommendationOptions()
+    options: Optional[dict[str, Any]] = Field(
+        default=None,
+        description="Options: language (str), include_citations (bool), top_k (int)",
+    )
 
 
 class ModelInfo(BaseModel):
@@ -103,18 +87,20 @@ class ModelInfo(BaseModel):
     version: str
 
 
-class RecommendationItem(BaseModel):
-    client_item_key: Optional[str] = None
-    category: str
+class RecommendationItemResponse(BaseModel):
+    """One row in ai_recommendation_items table."""
+    id: str
+    category: str  # DIAGNOSTIC_TEST | LOCAL_ANTIBIOTIC | SYSTEMIC_ANTIBIOTIC | SURGERY_PROCEDURE
     title: str
-    priority_order: int
-    is_primary: bool
     item_json: dict[str, Any]
 
 
-class CitationItem(BaseModel):
-    client_item_key: Optional[str] = None
-    source_type: str
+class CitationResponse(BaseModel):
+    """One row in ai_rag_citations table."""
+    id: str
+    run_id: str
+    item_id: Optional[str] = None
+    source_type: str  # GUIDELINE | META_ANALYSIS | JOURNAL_ARTICLE | CONSENSUS_STATEMENT | SYSTEMATIC_REVIEW
     source_title: str
     source_uri: Optional[str] = None
     snippet: str
@@ -122,19 +108,32 @@ class CitationItem(BaseModel):
     cited_for: Optional[str] = None
 
 
-class RecommendationResponse(BaseModel):
+class MissingItem(BaseModel):
+    field: str
+    category: str  # ICM_MAJOR | ICM_MINOR | CLINICAL
+    importance: str  # CRITICAL | HIGH | MEDIUM
+    message: str
+
+
+class DataCompleteness(BaseModel):
+    """Deterministic data completeness check result."""
+    is_complete: bool
+    missing_items: list[MissingItem]
+    completeness_score: str
+    impact_note: str
+
+
+class ProcessSnapshotResponse(BaseModel):
+    """Full response for /api/v1/process-snapshot."""
     request_id: str
-    status: str
+    status: str  # SUCCESS | ERROR
     model: ModelInfo
     latency_ms: int
-    assessment_json: Optional[dict[str, Any]] = None
-    explanation_json: Optional[dict[str, Any]] = None
-    warnings_json: Optional[list[dict[str, Any]]] = None
-    items: list[RecommendationItem]
-    citations: list[CitationItem] = []
+    run_id: str
+    data_completeness: DataCompleteness
+    ai_recommendation_items: list[RecommendationItemResponse]
+    ai_rag_citations: list[CitationResponse]
 
-
-# ==================== Chat Models ====================
 
 class ChatMessage(BaseModel):
     role: str
@@ -155,7 +154,7 @@ class ChatResponse(BaseModel):
     references: Optional[list[dict[str, Any]]] = None
 
 
-# ==================== Existing Endpoints ====================
+# ==================== Endpoints ====================
 
 @app.get("/health", response_model=HealthResponse)
 async def health_check():
@@ -166,49 +165,15 @@ async def health_check():
     )
 
 
-@app.post("/ask", response_model=QueryResponse)
-async def ask_question(request: QueryRequest):
-    """Endpoint chinh - Hoi cau hoi y te."""
-    if not rag_system:
-        raise HTTPException(
-            status_code=503,
-            detail="He thong chua duoc khoi tao. Kiem tra API keys.",
-        )
+@app.post("/api/v1/process-snapshot", response_model=ProcessSnapshotResponse)
+async def process_snapshot(request: ProcessSnapshotRequest):
+    """Main endpoint - Process clinical snapshot and return recommendations + citations + completeness.
 
-    if not request.question.strip():
-        raise HTTPException(
-            status_code=400,
-            detail="Cau hoi khong duoc de trong.",
-        )
-
-    try:
-        result = rag_system.answer(
-            query=request.question,
-            user_context=request.user_context,
-            use_web=request.use_web_search,
-        )
-
-        return QueryResponse(
-            answer=result["answer"],
-            category=result["category"],
-            sources=result["sources"],
-        )
-
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Loi xu ly cau hoi: {str(e)}",
-        )
-
-
-# ==================== Recommendation Endpoint ====================
-
-@app.post("/api/v1/recommendation/generate", response_model=RecommendationResponse)
-async def generate_recommendation(request: RecommendationRequest):
-    """Generate PJI recommendation based on clinical snapshot data.
-
-    Receives normalized clinical data, runs RAG pipeline,
-    and returns structured recommendation items with citations.
+    Input: snapshot_data_json (section_1_input from API contract)
+    Output:
+        - data_completeness: deterministic check of missing data
+        - ai_recommendation_items: 4 categories (DIAGNOSTIC_TEST, LOCAL_ANTIBIOTIC, SYSTEMIC_ANTIBIOTIC, SURGERY_PROCEDURE)
+        - ai_rag_citations: evidence citations linked to recommendation items
     """
     if not rag_system or not pji_engine:
         raise HTTPException(
@@ -218,13 +183,47 @@ async def generate_recommendation(request: RecommendationRequest):
 
     try:
         start_time = time.time()
+        snapshot_data = request.snapshot_data_json
+
+        # Step 1: Deterministic data completeness check (no LLM)
+        completeness = check_data_completeness(snapshot_data)
+
+        # Step 2: Generate recommendations + citations via RAG + LLM
+        options = request.options or {"language": "vi", "include_citations": True, "top_k": 5}
         result = pji_engine.generate_recommendation(
-            snapshot_data=request.snapshot_data_json,
-            options=request.options.model_dump(),
+            snapshot_data=snapshot_data,
+            options=options,
         )
+
         latency_ms = int((time.time() - start_time) * 1000)
 
-        return RecommendationResponse(
+        # Build response matching contract
+        recommendation_items = [
+            RecommendationItemResponse(
+                id=item["id"],
+                category=item["category"],
+                title=item["title"],
+                item_json=item["item_json"],
+            )
+            for item in result.get("recommendation_items", [])
+        ]
+
+        citations = [
+            CitationResponse(
+                id=cit["id"],
+                run_id=cit["run_id"],
+                item_id=cit.get("item_id"),
+                source_type=cit["source_type"],
+                source_title=cit["source_title"],
+                source_uri=cit.get("source_uri"),
+                snippet=cit["snippet"],
+                relevance_score=cit["relevance_score"],
+                cited_for=cit.get("cited_for"),
+            )
+            for cit in result.get("citations", [])
+        ]
+
+        return ProcessSnapshotResponse(
             request_id=request.request_id,
             status="SUCCESS",
             model=ModelInfo(
@@ -232,22 +231,19 @@ async def generate_recommendation(request: RecommendationRequest):
                 version=pji_engine.model_version,
             ),
             latency_ms=latency_ms,
-            assessment_json=result.get("assessment_json"),
-            explanation_json=result.get("explanation_json"),
-            warnings_json=result.get("warnings_json"),
-            items=result.get("items", []),
-            citations=result.get("citations", []),
+            run_id=result.get("run_id", ""),
+            data_completeness=DataCompleteness(**completeness),
+            ai_recommendation_items=recommendation_items,
+            ai_rag_citations=citations,
         )
 
     except Exception as e:
-        logging.error(f"Recommendation generation failed: {e}", exc_info=True)
+        logging.error(f"Process snapshot failed: {e}", exc_info=True)
         raise HTTPException(
             status_code=500,
-            detail=f"Loi tao recommendation: {str(e)}",
+            detail=f"Loi xu ly snapshot: {str(e)}",
         )
 
-
-# ==================== Chat Endpoint ====================
 
 @app.post("/api/v1/chat", response_model=ChatResponse)
 async def chat(request: ChatRequest):

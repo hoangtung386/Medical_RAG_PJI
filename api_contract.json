@@ -1,0 +1,696 @@
+{
+  "_meta": {
+    "description": "JSON Mẫu nhé",
+    "version": "1.0"
+  },
+  "section_1_input": "=== Bên AI sẽ nhận các đoạn JSON này ===",
+  "template_1_description": "Toàn bộ dữ liệu lâm sàng tại thời điểm AI chạy, tổng hợp từ nhiều bảng source-of-truth",
+  "snapshot_data_json": {
+    "snapshot_metadata": {
+      "snapshot_at": "2026-03-12T08:30:00Z",
+      "episode_id": 1001,
+      "episode_code": "EP-2026-00123",
+      "patient_id": 500,
+      "data_sources": [
+        "clinical_records",
+        "medical_histories",
+        "surgeries",
+        "lab_results",
+        "image_results",
+        "culture_results",
+        "sensitivity_results"
+      ]
+    },
+    "patient_demographics": {
+      "patient_code": "BN-2026-0500",
+      "full_name": "Hoàng Minh Kaha",
+      "date_of_birth": "2003-05-20",
+      "gender": "MALE"
+    },
+    "medical_history": {
+      "medical_history": "Tiền sử thay khớp háng phải 3 năm trước tại BV Chợ Rẫy. Tiểu đường type 2 điều trị Metformin 10 năm. Tăng huyết áp điều trị Amlodipine.",
+      "process": "Bệnh nhân đau khớp háng phải tăng dần 2 tháng nay, kèm sốt nhẹ về chiều. Đã dùng kháng sinh tuyến dưới không đỡ.",
+      "allergies": {
+        "is_allergy": true,
+        "allergy_note": "Dị ứng Penicillin (phát ban toàn thân)"
+      },
+      "substance_use": {
+        "is_drug": false,
+        "drug_note": null,
+        "is_alcohol": true,
+        "alcohol_note": "Uống bia 2-3 lon/tuần",
+        "is_smoking": false,
+        "smoking_note": null,
+        "is_other": true,
+        "other_note": "Tiểu đường type 2, Tăng huyết áp"
+      }
+    },
+    "clinical_records": {
+      "record_id": 3001,
+      "recorded_at": "2026-03-11T14:00:00Z",
+      "illness_onset_date": "2026-01-10",
+      "vitals": {
+        "blood_pressure": "140/90",
+        "bmi": 27.5
+      },
+      "symptoms": {
+        "fever": true,
+        "pain": true,
+        "erythema": true,
+        "swelling": true,
+        "sinus_tract": false
+      },
+      "infection_assessment": {
+        "suspected_infection_type": "CHRONIC",
+        "hematogenous_suspected": false,
+        "implant_stability": "UNSTABLE",
+        "soft_tissue": "Viêm đỏ vùng đùi phải, có dịch rỉ",
+        "pmma_allergy": false,
+        "prosthesis_joint": "HIP_RIGHT",
+        "days_since_index_arthroplasty": 1095
+      },
+      "notations": "Bệnh nhân tỉnh táo, tiếp xúc tốt. Tim đều, phổi trong. Bụng mềm. Khớp háng phải sưng nóng đỏ đau, hạn chế vận động."
+    },
+    "surgeries": {
+      "items": [
+        {
+          "surgery_id": 201,
+          "surgery_date": "2023-03-15",
+          "surgery_type": "Total Hip Arthroplasty (THA)",
+          "findings": "Thoái hóa khớp háng phải độ IV. Thay khớp háng toàn phần không xi măng."
+        },
+        {
+          "surgery_id": 202,
+          "surgery_date": "2026-02-20",
+          "surgery_type": "Arthrocentesis - Chọc hút dịch khớp",
+          "findings": "Dịch khớp đục, mùi hôi nhẹ. Gửi nuôi cấy vi khuẩn."
+        }
+      ]
+    },
+    "lab_results": {
+      "_note": "Lấy kết quả xét nghiệm gần nhất",
+      "latest": {
+        "lab_id": 4001,
+        "created_at": "2026-03-10T07:00:00Z",
+        "inflammatory_markers_blood": {
+          "esr": 85,
+          "esr_unit": "mm/h",
+          "wbc_blood": 12.5,
+          "wbc_blood_unit": "x10^9/L",
+          "neut": 78.5,
+          "neut_unit": "%",
+          "mono": 8.2,
+          "mono_unit": "%",
+          "crp": 95.3,
+          "crp_unit": "mg/L",
+          "d_dimer": 1.85,
+          "d_dimer_unit": "mg/L FEU",
+          "serum_il6": 45.2,
+          "serum_il6_unit": "pg/mL",
+          "alpha_defensin": "POSITIVE"
+        },
+        "hematology": {
+          "rbc": 4.25,
+          "rbc_unit": "x10^12/L",
+          "ig": 0.5,
+          "ig_unit": "%",
+          "mcv": 88.0,
+          "mcv_unit": "fL",
+          "mch": 30.5,
+          "mch_unit": "pg",
+          "mchc": 340,
+          "mchc_unit": "g/L"
+        },
+        "synovial_fluid": {
+          "synovial_wbc": 52000,
+          "synovial_wbc_unit": "cells/μL",
+          "synovial_pmn": 92.0,
+          "synovial_pmn_unit": "%"
+        },
+        "biochemical_data": {
+          "glucose": 8.5,
+          "glucose_unit": "mmol/L",
+          "ure": 6.2,
+          "ure_unit": "mmol/L",
+          "creatinine": 95,
+          "creatinine_unit": "μmol/L",
+          "alt": 28,
+          "alt_unit": "U/L",
+          "ast": 32,
+          "ast_unit": "U/L",
+          "albumin": 32,
+          "albumin_unit": "g/L",
+          "sodium": 138,
+          "sodium_unit": "mmol/L",
+          "chlor": 101,
+          "chlor_unit": "mmol/L",
+          "kali": 4.1,
+          "kali_unit": "mmol/L",
+          "hba1c": 7.8,
+          "hba1c_unit": "%"
+        }
+      },
+      "historical_trends": [
+        {
+          "created_at": "2026-02-20T07:00:00Z",
+          "crp": 120.5,
+          "esr": 95,
+          "wbc_blood": 14.2,
+          "synovial_wbc": 68000
+        },
+        {
+          "created_at": "2026-03-01T07:00:00Z",
+          "crp": 105.0,
+          "esr": 90,
+          "wbc_blood": 13.1,
+          "synovial_wbc": 58000
+        }
+      ]
+    },
+    "image_results": {
+      "items": [
+        {
+          "image_id": 5001,
+          "type": "X-RAY",
+          "created_at": "2026-03-08T10:00:00Z",
+          "findings": "X-quang khớp háng phải: Dấu hiệu lỏng lẻo khớp giả, có đường sáng quanh ổ cối và thân xương đùi >2mm. Không gãy xương.",
+          "file_metadata": {
+            "path": "https://pji-images/ep1001/xray_hip_right_20260308.dcm"
+          }
+        },
+        {
+          "image_id": 5002,
+          "type": "CT",
+          "created_at": "2026-03-09T11:00:00Z",
+          "findings": "CT khớp háng phải: Tiêu xương quanh khớp giả vùng Gruen zone 1,7. Tụ dịch quanh khớp giả kích thước 3x4cm.",
+          "file_metadata": {
+            "path": "https://pji-images/ep1001/ct_hip_right_20260309.dcm"
+          }
+        }
+      ]
+    },
+    "culture_results": {
+      "items": [
+        {
+          "culture_id": 6001,
+          "sample_type": "Dịch khớp",
+          "name": "Staphylococcus aureus",
+          "result_status": "POSITIVE",
+          "gram_type": "GRAM_POSITIVE",
+          "incubation_days": 3,
+          "notes": "Mọc sau 48h nuôi cấy, định danh bằng MALDI-TOF",
+          "sensitivities": [
+            {
+              "antibiotic_name": "Vancomycin",
+              "mic_value": "1",
+              "sensitivity_code": "S"
+            },
+            {
+              "antibiotic_name": "Rifampicin",
+              "mic_value": "0.006",
+              "sensitivity_code": "S"
+            },
+            {
+              "antibiotic_name": "Oxacillin",
+              "mic_value": ">2",
+              "sensitivity_code": "R"
+            },
+            {
+              "antibiotic_name": "Ciprofloxacin",
+              "mic_value": "0.5",
+              "sensitivity_code": "S"
+            },
+            {
+              "antibiotic_name": "Trimethoprim-Sulfamethoxazole",
+              "mic_value": "<=0.5/9.5",
+              "sensitivity_code": "S"
+            },
+            {
+              "antibiotic_name": "Daptomycin",
+              "mic_value": "0.5",
+              "sensitivity_code": "S"
+            },
+            {
+              "antibiotic_name": "Linezolid",
+              "mic_value": "2",
+              "sensitivity_code": "S"
+            }
+          ]
+        },
+        {
+          "culture_id": 6002,
+          "sample_type": "Mô quanh khớp giả",
+          "organism_name": "Staphylococcus aureus",
+          "result_status": "POSITIVE",
+          "gram_type": "GRAM_POSITIVE",
+          "incubation_days": 2,
+          "notes": "Cùng chủng với mẫu dịch khớp",
+          "sensitivities": [
+            {
+              "antibiotic_name": "Vancomycin",
+              "mic_value": "1",
+              "sensitivity_code": "S"
+            },
+            {
+              "antibiotic_name": "Rifampicin",
+              "mic_value": "0.006",
+              "sensitivity_code": "S"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "section_2_output_recommendations": "=== Response 1: ai_recommendation_items ===",
+  "template_2_table": "ai_recommendation_items",
+  "template_2_description": "3 loại phác đồ: LOCAL_ANTIBIOTIC, SYSTEMIC_ANTIBIOTIC, SURGERY_PROCEDURE. Mỗi loại tương ứng 1 row trong bảng ai_recommendation_items với category enum tương ứng.",
+  "item_json_templates": {
+    "LOCAL_ANTIBIOTIC": {
+      "category": "LOCAL_ANTIBIOTIC",
+      "title": "Phác đồ kháng sinh tại chỗ - Vancomycin + Tobramycin cement spacer",
+      "regimen_name": "Antibiotic-loaded cement spacer (ALCS)",
+      "indication": "Nhiễm trùng khớp giả háng phải do MRSA - giai đoạn spacer sau tháo khớp giả",
+      "duration_days": 42,
+      "duration_note": "6 tuần với spacer xi măng kháng sinh, đánh giá lại trước khi tháo spacer",
+      "delivery_info": {
+        "delivery_method": "CEMENT_SPACER",
+        "spacer_type": "ARTICULATING",
+        "cement_brand_suggestion": "Palacos R+G hoặc tương đương",
+        "mixing_ratio": "Vancomycin 2g + Tobramycin 2.4g per 40g xi măng PMMA"
+      },
+      "antibiotics": [
+        {
+          "antibiotic_name": "Vancomycin (trong xi măng)",
+          "dosage": "2g per 40g xi măng PMMA",
+          "frequency": "Elution liên tục từ spacer",
+          "route": "LOCAL_CEMENT",
+          "sequence_order": 1,
+          "role": "PRIMARY",
+          "notes": "Nhạy cảm theo kháng sinh đồ (MIC = 1 μg/mL). Kháng sinh chính phủ vi khuẩn MRSA tại chỗ."
+        },
+        {
+          "antibiotic_name": "Tobramycin (trong xi măng)",
+          "dosage": "2.4g per 40g xi măng PMMA",
+          "frequency": "Elution liên tục từ spacer",
+          "route": "LOCAL_CEMENT",
+          "sequence_order": 2,
+          "role": "SYNERGISTIC",
+          "notes": "Aminoglycoside bổ trợ, tăng phổ Gram âm, cải thiện tính chất cơ học xi măng."
+        }
+      ],
+      "monitoring": [
+        "Theo dõi dịch rỉ vết mổ hàng ngày",
+        "CRP, ESR mỗi 2 tuần đánh giá đáp ứng",
+        "X-quang kiểm tra vị trí spacer mỗi 2-4 tuần"
+      ],
+      "contraindications": [
+        "Dị ứng thành phần xi măng PMMA ",
+        "Dị ứng Aminoglycoside"
+      ],
+      "notes": "Bệnh nhân dị ứng Penicillin - không ảnh hưởng đến phác đồ này. Spacer khớp động (articulating) giúp duy trì chiều dài chi và giảm co rút."
+    },
+    "SYSTEMIC_ANTIBIOTIC": {
+      "category": "SYSTEMIC_ANTIBIOTIC",
+      "title": "Phác đồ kháng sinh toàn thân - Vancomycin IV → Rifampicin + TMP-SMX uống",
+      "regimen_name": "IV Vancomycin tấn công → Rifampicin + TMP-SMX duy trì uống",
+      "indication": "Nhiễm trùng khớp giả do MRSA (Staphylococcus aureus kháng Oxacillin). Phác đồ 2 giai đoạn theo IDSA guidelines.",
+      "total_duration_weeks": 12,
+      "phases": [
+        {
+          "phase_name": "Giai đoạn tấn công (Induction/IV phase)",
+          "phase_order": 1,
+          "duration_weeks": 6,
+          "duration_note": "Bắt đầu ngay sau phẫu thuật tháo khớp giả, tối thiểu 4-6 tuần IV",
+          "antibiotics": [
+            {
+              "antibiotic_name": "Vancomycin",
+              "dosage": "15-20 mg/kg",
+              "frequency": "Mỗi 8-12 giờ (q8-12h)",
+              "route": "IV",
+              "sequence_order": 1,
+              "role": "PRIMARY",
+              "notes": "Target trough 15-20 μg/mL hoặc AUC/MIC 400-600. Nhạy cảm theo kháng sinh đồ MIC = 1 μg/mL. Chỉnh liều theo chức năng thận (creatinine 95 μmol/L - hiện bình thường)."
+            },
+            {
+              "antibiotic_name": "Rifampicin",
+              "dosage": "300-450 mg",
+              "frequency": "Mỗi 12 giờ (q12h)",
+              "route": "ORAL",
+              "sequence_order": 2,
+              "role": "BIOFILM_AGENT",
+              "notes": "BẮT BUỘC phối hợp - không dùng đơn trị để tránh kháng thuốc. Rifampicin có khả năng diệt vi khuẩn trong biofilm. Nhạy cảm MIC = 0.006 μg/mL. Bắt đầu sau 3-5 ngày hậu phẫu khi dẫn lưu giảm."
+            }
+          ]
+        },
+        {
+          "phase_name": "Giai đoạn duy trì (Oral/Consolidation phase)",
+          "phase_order": 2,
+          "duration_weeks": 6,
+          "duration_note": "Chuyển đổi sau khi hoàn thành giai đoạn IV, CRP có xu hướng giảm, lâm sàng cải thiện",
+          "antibiotics": [
+            {
+              "antibiotic_name": "Trimethoprim-Sulfamethoxazole (TMP-SMX)",
+              "dosage": "960 mg (DS tablet)",
+              "frequency": "Mỗi 12 giờ (q12h)",
+              "route": "ORAL",
+              "sequence_order": 1,
+              "role": "PRIMARY_ORAL",
+              "notes": "Nhạy cảm theo kháng sinh đồ MIC <=0.5/9.5. Thay thế Vancomycin IV. Theo dõi công thức máu (giảm tiểu cầu, thiếu máu). Uống nhiều nước."
+            },
+            {
+              "antibiotic_name": "Rifampicin",
+              "dosage": "300-450 mg",
+              "frequency": "Mỗi 12 giờ (q12h)",
+              "route": "ORAL",
+              "sequence_order": 2,
+              "role": "BIOFILM_AGENT",
+              "notes": "Tiếp tục phối hợp xuyên suốt cả 2 giai đoạn. Lưu ý tương tác thuốc: Rifampicin giảm tác dụng thuốc hạ đường huyết, thuốc huyết áp - cần theo dõi đường máu và huyết áp sát."
+            }
+          ]
+        }
+      ],
+      "monitoring": [
+        "Vancomycin trough hoặc AUC mỗi 3-5 ngày giai đoạn IV",
+        "Creatinine, BUN mỗi tuần (theo dõi độc tính thận Vancomycin)",
+        "CRP, ESR mỗi 1-2 tuần đánh giá đáp ứng điều trị",
+        "Công thức máu mỗi 1-2 tuần (TMP-SMX có thể gây giảm tiểu cầu)",
+        "Chức năng gan (AST, ALT) mỗi 2-4 tuần (Rifampicin gây độc gan)",
+        "HbA1c & đường huyết (bệnh nhân tiểu đường, Rifampicin tương tác)"
+      ],
+      "contraindications": [
+        "Dị ứng Penicillin (KHÔNG ảnh hưởng phác đồ này - không dùng beta-lactam)",
+        "Suy thận nặng (cần chỉnh liều Vancomycin & TMP-SMX)",
+        "Suy gan nặng (chống chỉ định Rifampicin)"
+      ],
+      "notes": "Phác đồ dựa trên kháng sinh đồ MRSA. Rifampicin là backbone chống biofilm - KHÔNG BAO GIỜ dùng đơn trị. Bệnh nhân có tiểu đường (HbA1c 7.8%) - Rifampicin có thể làm giảm tác dụng Metformin, cần theo dõi đường huyết chặt chẽ và có thể cần tăng liều thuốc hạ đường huyết."
+    },
+    "SURGERY_PROCEDURE": {
+      "category": "SURGERY_PROCEDURE",
+      "example": "Phác đồ phẫu thuật - Two-stage revision arthroplasty",
+      "surgery_strategy_type": "TWO_STAGE_REVISION",
+      "strategy_rationale": "PJI mạn tính (>4 tuần triệu chứng), khớp giả lỏng lẻo, MRSA - chỉ định two-stage revision theo ICM/IDSA guidelines.",
+      "priority_level": "HIGH",
+      "priority_note": "Phẫu thuật giai đoạn 1 nên thực hiện trong vòng 1-2 tuần sau nhập viện. Không cấp cứu nhưng không nên trì hoãn do nguy cơ tiêu xương tiến triển.",
+      "stages": [
+        {
+          "stage_order": 1,
+          "stage_name": "Giai đoạn 1 - Tháo khớp giả & đặt spacer kháng sinh",
+          "estimated_duration_minutes": 180
+        },
+        {
+          "stage_order": 2,
+          "stage_name": "Giai đoạn 2 - Tháo spacer & thay khớp giả mới (Reimplantation)",
+          "estimated_duration_minutes": 210,
+          "interval_from_stage1": "8-12 tuần sau giai đoạn 1",
+          "preconditions": [
+            "Hết kháng sinh toàn thân ≥ 2 tuần (antibiotic holiday)",
+            "CRP về bình thường hoặc giảm đáng kể",
+            "Lâm sàng không còn dấu hiệu nhiễm trùng",
+            "Chọc hút dịch khớp trước mổ: nuôi cấy âm tính, WBC dịch khớp < 3000"
+          ]
+        }
+      ],
+      "estimated_total_treatment_time": "4-6 tháng (bao gồm khoảng cách giữa 2 giai đoạn và phục hồi chức năng)",
+      "risks_and_complications": [
+        "Nhiễm trùng tái phát (10-15%)",
+        "Gãy xương quanh khớp giả trong khi tháo",
+        "Trật spacer",
+        "Thiếu hụt stock xương nặng cần ghép xương",
+        "Chênh lệch chiều dài chi"
+      ],
+      "notes": "Bệnh nhân tiểu đường HbA1c 7.8% - cần tối ưu đường huyết trước mổ (mục tiêu HbA1c < 8%, đường huyết lúc đói < 11 mmol/L). Albumin 32 g/L - ranh giới thấp, cân nhắc bổ sung dinh dưỡng trước mổ. Dị ứng Penicillin - tránh dùng Cephalosporin dự phòng phẫu thuật, thay bằng Vancomycin dự phòng. Đánh giá nguy cơ tim mạch trước mổ (tăng huyết áp, BMI 27.5)."
+    },
+    "DIAGNOSTIC_TEST": {
+      "category": "DIAGNOSTIC_TEST",
+      "title": "Chẩn đoán AI - Đánh giá nhiễm trùng khớp giả theo ICM 2018 Scoring",
+      "scoring_system": {
+        "name": "ICM 2018 PJI Diagnostic Criteria",
+        "version": "2018 (Philadelphia Consensus)",
+        "total_score": 9,
+        "interpretation": "INFECTED",
+        "confidence_note": "Độ tin cậy cao dựa trên đầy đủ dữ liệu lâm sàng, xét nghiệm và vi sinh"
+      },
+      "major_criteria": {
+        "note": "Mỗi tiêu chí chính = Decision (kết luận ngay là Infected nếu dương tính, không cần tính điểm)",
+        "items": [
+          {
+            "criterion": "≥ 2 mẫu nuôi cấy dương tính cùng một vi khuẩn",
+            "result": true,
+            "result_detail": "2/2 mẫu nuôi cấy dương tính Staphylococcus aureus (dịch khớp + mô quanh khớp giả)",
+            "is_decisive": true
+          },
+          {
+            "criterion": "Đường rò thông với khớp giả",
+            "result": false,
+            "result_detail": "Không có đường rò (sinus_tract = false)",
+            "is_decisive": false
+          }
+        ],
+        "major_criteria_met": true,
+        "major_criteria_conclusion": "Đã thỏa tiêu chí chính: 2 mẫu nuôi cấy cùng vi khuẩn → Có thể kết luận INFECTED ngay. Điểm minor dưới đây để bổ trợ mức độ."
+      },
+      "minor_criteria_scoring": {
+        "note": "Tính điểm từ các tiêu chí phụ khi chưa thỏa major criteria, hoặc bổ trợ đánh giá mức độ",
+        "items": [
+          {
+            "criterion": "Serum CRP (>10 mg/L) or D-Dimer (>860 ng/mL)",
+            "score_weight": 2,
+            "result": true,
+            "result_detail": "CRP = 95.3 mg/L (>10), D-Dimer = 1.85 mg/L FEU = 1850 ng/mL (>860)",
+            "score_awarded": 2
+          },
+          {
+            "criterion": "Tốc độ máu lắng tăng ESR (>30 mm/h)",
+            "score_weight": 1,
+            "result": true,
+            "result_detail": "ESR = 85 mm/h (>30)",
+            "score_awarded": 1
+          },
+          {
+            "criterion": "Synovial WBC (>3000 cells/μL) or Leukocyte Esterase (++)",
+            "score_weight": 3,
+            "result": true,
+            "result_detail": "Synovial WBC = 52,000 cells/μL (>>3000)",
+            "score_awarded": 3
+          },
+          {
+            "criterion": "Tỷ lệ bạch cầu đa nhân trung tính dịch khớp tăng Synovial PMN% (>80%)",
+            "score_weight": 2,
+            "result": true,
+            "result_detail": "Synovial PMN = 92% (>80%)",
+            "score_awarded": 2
+          },
+          {
+            "criterion": "Positive Alpha-Defensin",
+            "score_weight": 3,
+            "result": true,
+            "result_detail": "Alpha-Defensin = POSITIVE",
+            "score_awarded": 3
+          },
+          {
+            "criterion": "Elevated Serum IL-6 (>10 pg/mL)",
+            "criterion_vi": "IL-6 huyết thanh tăng",
+            "score_weight": 1,
+            "result": true,
+            "result_detail": "Serum IL-6 = 45.2 pg/mL (>10)",
+            "score_awarded": 1
+          },
+          {
+            "criterion": "1 mẫu nuôi cấy dương tính đơn lẻ",
+            "score_weight": 2,
+            "result": false,
+            "result_detail": "Không áp dụng - đã có 2 mẫu dương tính (thuộc major criteria)",
+            "score_awarded": 0
+          },
+          {
+            "criterion": "Giải phẫu bệnh dương tính (>5 PMN per HPF)",
+            "score_weight": 3,
+            "result": null,
+            "result_detail": "Chưa có kết quả giải phẫu bệnh",
+            "score_awarded": 0
+          }
+        ],
+        "total_minor_score": 12,
+        "total_minor_score_note": "12/20 điểm minor khả dụng → vượt xa ngưỡng ≥6 (Infected)"
+      },
+      "ai_reasoning": {
+        "primary_diagnosis": "Periprosthetic Joint Infection (PJI) - Nhiễm trùng khớp giả háng phải",
+        "infection_classification": "CHRONIC",
+        "infection_classification_reasoning": "Triệu chứng > 4 tuần (onset 2 tháng), khớp giả lỏng lẻo (implant_stability = UNSTABLE), không có sự kiện hematogenous.",
+        "identified_organism": {
+          "name": "Staphylococcus aureus",
+          "resistance_profile": "MRSA (Methicillin-Resistant Staphylococcus aureus)",
+          "resistance_detail": "Oxacillin R (MIC >2). Nhạy Vancomycin, Rifampicin, Ciprofloxacin, TMP-SMX, Daptomycin, Linezolid.",
+          "biofilm_forming": true,
+          "virulence_note": "S. aureus là tác nhân PJI phổ biến nhất, khả năng hình thành biofilm cao trên bề mặt implant."
+        },
+        "reasoning_summary": "Bệnh nhân thỏa mãn cả tiêu chí chính (2 mẫu nuôi cấy cùng vi khuẩn) và điểm minor = 12 (>>6) theo ICM 2018. Chẩn đoán xác định PJI mạn tính háng phải do MRSA. Do nhiễm trùng mạn tính + implant lỏng lẻo + MRSA, chiến lược tối ưu là two-stage revision với spacer kháng sinh tại chỗ (Vancomycin + Tobramycin PMMA) kết hợp kháng sinh toàn thân (Vancomycin IV → Rifampicin + TMP-SMX uống). DAIR không phù hợp vì nhiễm trùng mạn > 4 tuần và implant không ổn định.",
+        "warnings": [
+          {
+            "type": "ALLERGY_ALERT",
+            "severity": "HIGH",
+            "message": "Dị ứng Penicillin - TUYỆT ĐỐI KHÔNG dùng nhóm Penicillin. Cân nhắc nguy cơ cross-reactivity với Cephalosporin."
+          },
+          {
+            "type": "DRUG_INTERACTION",
+            "severity": "MEDIUM",
+            "message": "Rifampicin làm giảm nồng độ Metformin, Amlodipine qua CYP450 induction. Theo dõi đường huyết và huyết áp chặt chẽ."
+          },
+          {
+            "type": "RENAL_CHECK",
+            "severity": "LOW",
+            "message": "Creatinine 95 μmol/L (hiện bình thường). Theo dõi sát khi dùng Vancomycin IV - cần chỉnh liều nếu suy thận."
+          }
+        ]
+      }
+    }
+  },
+  "section_3_output_citations": "=== Response 2: ai_rag_citations ===",
+  "template_3_table": "ai_rag_citations",
+  "template_3_description": "Trích dẫn tài liệu bằng chứng (evidence) cho kết quả AI. Mỗi citation là 1 row trong bảng ai_rag_citations, link đến run_id và tùy chọn item_id cụ thể.",
+  "ai_rag_citations_examples": [
+    {
+      "description": "Citation cho DIAGNOSTIC_TEST item - ICM Scoring criteria",
+      "id": "cit-uuid-001",
+      "run_id": "run-uuid-xxx",
+      "item_id": "item-uuid-diagnostic-test",
+      "source_type": "GUIDELINE",
+      "source_title": "2018 Definition of Periprosthetic Joint Infection: An Evidence-Based and Validated Criteria - The Musculoskeletal Infection Society (ICM 2018)",
+      "source_uri": "https://doi.org/10.1016/j.arth.2018.02.078",
+      "snippet": "A combined minor criteria score of ≥6 indicates PJI is present (Infected). A score of 4-5 is Inconclusive and warrants further investigation. A score of ≤3 suggests the joint is Not Infected.",
+      "relevance_score": 0.9800,
+      "cited_for": "Hệ thống tính điểm chẩn đoán PJI, ngưỡng phân loại Infected/Inconclusive/Not Infected"
+    },
+    {
+      "description": "Citation cho DIAGNOSTIC_TEST - Alpha-Defensin evidence",
+      "id": "cit-uuid-002",
+      "run_id": "run-uuid-xxx",
+      "item_id": "item-uuid-diagnostic-test",
+      "source_type": "META_ANALYSIS",
+      "source_title": "Alpha-Defensin as a Synovial Fluid Biomarker for Periprosthetic Joint Infection: A Systematic Review and Meta-Analysis",
+      "source_uri": "https://doi.org/10.1016/j.arth.2019.06.023",
+      "snippet": "Synovial fluid alpha-defensin demonstrates pooled sensitivity 97% and specificity 96% for PJI diagnosis.",
+      "relevance_score": 0.9500,
+      "cited_for": "Giá trị chẩn đoán Alpha-Defensin dương tính trong context bệnh nhân này"
+    },
+    {
+      "description": "Citation cho SURGERY_PROCEDURE item - Two-stage strategy",
+      "id": "cit-uuid-003",
+      "run_id": "run-uuid-xxx",
+      "item_id": "item-uuid-surgery",
+      "source_type": "GUIDELINE",
+      "source_title": "IDSA Clinical Practice Guidelines for the Diagnosis and Management of PJI - Infectious Diseases Society of America (2013, updated 2023)",
+      "source_uri": "https://doi.org/10.1093/cid/cis803",
+      "snippet": "Two-stage exchange is recommended for chronic PJI (>4 weeks), infections with difficult-to-treat organisms (MRSA), and cases with implant loosening.",
+      "relevance_score": 0.9700,
+      "cited_for": "Chỉ định two-stage revision cho PJI mạn tính + MRSA + implant lỏng lẻo"
+    },
+    {
+      "_description": "Citation cho SYSTEMIC_ANTIBIOTIC item - Rifampicin biofilm evidence",
+      "id": "cit-uuid-004",
+      "run_id": "run-uuid-xxx",
+      "item_id": "item-uuid-systemic-abx",
+      "source_type": "JOURNAL_ARTICLE",
+      "source_title": "Role of Rifampin Combination Therapy for Staphylococcal PJI - Zimmerli et al., NEJM",
+      "source_uri": "https://doi.org/10.1056/NEJMoa040266",
+      "snippet": "Rifampin-based combination significantly improved cure rates in staphylococcal implant infections by targeting biofilm-embedded bacteria.",
+      "relevance_score": 0.9600,
+      "cited_for": "Cơ sở khoa học cho việc dùng Rifampicin phối hợp trong phác đồ kháng sinh toàn thân chống biofilm"
+    },
+    {
+      "description": "Citation cho SYSTEMIC_ANTIBIOTIC item - Vancomycin dosing MRSA",
+      "id": "cit-uuid-005",
+      "run_id": "run-uuid-xxx",
+      "item_id": "item-uuid-systemic-abx",
+      "source_type": "CONSENSUS_STATEMENT",
+      "source_title": "ASHP/IDSA/SIDP Vancomycin Therapeutic Monitoring Guidelines (2020 Revised)",
+      "source_uri": "https://doi.org/10.1093/ofid/ofaa303",
+      "snippet": "AUC/MIC-guided dosing (target AUC 400-600 for MIC ≤1) is recommended over trough-only monitoring for serious MRSA infections.",
+      "relevance_score": 0.9300,
+      "cited_for": "Hướng dẫn liều Vancomycin AUC/MIC cho nhiễm MRSA nặng, áp dụng cho phác đồ giai đoạn tấn công IV"
+    },
+    {
+      "description": "Citation cho LOCAL_ANTIBIOTIC item - Cement spacer antibiotic loading",
+      "id": "cit-uuid-006",
+      "run_id": "run-uuid-xxx",
+      "item_id": "item-uuid-local-abx",
+      "source_type": "SYSTEMATIC_REVIEW",
+      "source_title": "Antibiotic-Loaded Bone Cement in PJI Treatment: A Systematic Review of Elution Characteristics and Clinical Outcomes",
+      "source_uri": "https://doi.org/10.1302/0301-620X.102B10.BJJ-2020-0369",
+      "snippet": "High-dose antibiotic loading (>2g vancomycin per 40g PMMA) provides effective local elution for 4-6 weeks with low systemic toxicity.",
+      "relevance_score": 0.9200,
+      "cited_for": "Liều và tỉ lệ trộn kháng sinh trong xi măng PMMA cho spacer, hiệu quả elution tại chỗ"
+    }
+  ],
+  "section_4_output_completeness": "=== Response 3 (MỚI): data_completeness ===",
+  "template_4_table": "Nằm trong response của /process-snapshot, field data_completeness",
+  "template_4_description": "Hệ thống AI tự kiểm tra dữ liệu đầu vào thiếu gì, trả về danh sách cảnh báo để web hiển thị cho bác sĩ. Hoàn toàn deterministic (không qua LLM). Web team chỉ cần check is_complete và hiển thị missing_items.",
+  "data_completeness_example": {
+    "is_complete": false,
+    "missing_items": [
+      {
+        "field": "synovial_WBC",
+        "category": "ICM_MINOR",
+        "importance": "CRITICAL",
+        "message": "Bạch cầu dịch khớp (3 điểm ICM) — marker quan trọng nhất"
+      },
+      {
+        "field": "synovial_PMN",
+        "category": "ICM_MINOR",
+        "importance": "HIGH",
+        "message": "PMN% dịch khớp (2 điểm ICM)"
+      },
+      {
+        "field": "synovial_alpha_defensin",
+        "category": "ICM_MINOR",
+        "importance": "HIGH",
+        "message": "Alpha-Defensin (3 điểm ICM) — độ đặc hiệu >96%"
+      },
+      {
+        "field": "positive_histology",
+        "category": "ICM_MINOR",
+        "importance": "HIGH",
+        "message": "Giải phẫu bệnh mô quanh khớp (3 điểm ICM) — cần sinh thiết mô trong phẫu thuật"
+      },
+      {
+        "field": "synovial_LE",
+        "category": "ICM_MINOR",
+        "importance": "MEDIUM",
+        "message": "Leukocyte Esterase dịch khớp (3 điểm ICM) — test nhanh tại chỗ"
+      },
+      {
+        "field": "culture_results",
+        "category": "ICM_MAJOR",
+        "importance": "CRITICAL",
+        "message": "Không có kết quả nuôi cấy — cần ít nhất 2 mẫu để đánh giá major criterion"
+      },
+      {
+        "field": "infection_type",
+        "category": "CLINICAL",
+        "importance": "HIGH",
+        "message": "Chưa xác định ACUTE/CHRONIC — ảnh hưởng ngưỡng ICM và chiến lược phẫu thuật"
+      },
+      {
+        "field": "implant_stability",
+        "category": "CLINICAL",
+        "importance": "HIGH",
+        "message": "Chưa đánh giá ổn định implant — ảnh hưởng chọn DAIR vs revision"
+      }
+    ],
+    "completeness_score": "1/6 ICM minor criteria có dữ liệu",
+    "impact_note": "Thiếu 2 dữ liệu CRITICAL — kết quả chẩn đoán và phác đồ có thể không chính xác. Khuyến nghị bổ sung trước khi áp dụng."
+  },
+  "data_completeness_notes": {
+    "importance_levels": {
+      "CRITICAL": "Thiếu dữ liệu này khiến kết quả không đáng tin cậy. Web nên hiện cảnh báo ĐỎ.",
+      "HIGH": "Nên bổ sung để tăng độ chính xác. Web nên hiện cảnh báo VÀNG.",
+      "MEDIUM": "Có thì tốt hơn, không có vẫn chấp nhận được."
+    },
+    "categories": {
+      "ICM_MAJOR": "Tiêu chí chính ICM 2018 (sinus tract, 2 cultures cùng vi khuẩn)",
+      "ICM_MINOR": "Tiêu chí phụ ICM 2018 (CRP, ESR, WBC, PMN%, Alpha-Defensin...)",
+      "CLINICAL": "Dữ liệu lâm sàng cần cho phân loại và chọn chiến lược điều trị"
+    },
+    "web_integration_guide": "1) Check is_complete → nếu false, hiện banner cảnh báo. 2) Lọc missing_items theo importance → hiện danh sách cho bác sĩ. 3) Không cần hiểu logic y khoa — message đã viết sẵn tiếng Việt."
+  }
+}
