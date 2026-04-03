@@ -5,12 +5,15 @@ understanding complex PDF layouts, tables, and medical documents.
 
 Usage:
     1. Add GEMINI_API_KEY to .env file
-    2. Run: python ingest_gemini.py
+    2. Run: uv run python3 ingest_gemini.py
 """
 
 import glob
 import logging
 import os
+import re
+import shutil
+import tempfile
 import time
 
 from dotenv import load_dotenv
@@ -30,45 +33,113 @@ DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
 COLLECTION_NAME = "medical_rag_docs"
 GEMINI_MODEL = "gemini-2.0-flash"
 
+# Rate limit: chờ giữa mỗi file (giây)
+DELAY_BETWEEN_FILES = 6
+# Số lần retry tối đa khi bị rate limit
+MAX_RETRIES = 3
+
+
+def _safe_copy_for_upload(file_path: str) -> str:
+    """Copy file sang tên ASCII tạm nếu tên gốc có ký tự Unicode.
+
+    Gemini upload API không xử lý được filename non-ASCII.
+    Trả về đường dẫn file tạm (cần xóa sau khi dùng).
+    """
+    filename = os.path.basename(file_path)
+    try:
+        filename.encode("ascii")
+        return file_path  # Tên đã là ASCII, không cần copy
+    except UnicodeEncodeError:
+        pass
+
+    # Tạo tên ASCII tạm giữ nguyên extension
+    ext = os.path.splitext(filename)[1]
+    tmp_dir = tempfile.mkdtemp(prefix="gemini_upload_")
+    safe_name = f"doc_{abs(hash(filename)) % 10**8}{ext}"
+    tmp_path = os.path.join(tmp_dir, safe_name)
+    shutil.copy2(file_path, tmp_path)
+    return tmp_path
+
 
 def parse_pdf_with_gemini(client, file_path: str) -> str:
     """Upload PDF to Gemini and extract text content.
 
     Gemini Flash understands tables, charts, and complex layouts.
+    Tự động copy file sang tên ASCII nếu tên gốc có tiếng Việt.
     """
-    uploaded_file = client.files.upload(file=file_path)
-
-    while uploaded_file.state.name == "PROCESSING":
-        time.sleep(2)
-        uploaded_file = client.files.get(
-            name=uploaded_file.name,
-        )
-
-    if uploaded_file.state.name == "FAILED":
-        raise Exception(
-            f"File processing failed: {uploaded_file.state.name}"
-        )
-
-    response = client.models.generate_content(
-        model=GEMINI_MODEL,
-        contents=[
-            uploaded_file,
-            "Extract ALL text content from this PDF document. "
-            "Preserve the document structure including headings, "
-            "paragraphs, tables, and lists. "
-            "For tables, convert them to a readable text format. "
-            "Output the full text content in the original "
-            "language of the document. "
-            "Do NOT summarize - extract the complete text.",
-        ],
-    )
+    upload_path = _safe_copy_for_upload(file_path)
+    tmp_created = upload_path != file_path
 
     try:
-        client.files.delete(name=uploaded_file.name)
-    except Exception:
-        pass
+        uploaded_file = client.files.upload(file=upload_path)
 
-    return response.text
+        while uploaded_file.state.name == "PROCESSING":
+            time.sleep(2)
+            uploaded_file = client.files.get(
+                name=uploaded_file.name,
+            )
+
+        if uploaded_file.state.name == "FAILED":
+            raise Exception(
+                f"File processing failed: {uploaded_file.state.name}"
+            )
+
+        response = client.models.generate_content(
+            model=GEMINI_MODEL,
+            contents=[
+                uploaded_file,
+                "Extract ALL text content from this PDF document. "
+                "Preserve the document structure including headings, "
+                "paragraphs, tables, and lists. "
+                "For tables, convert them to a readable text format. "
+                "Output the full text content in the original "
+                "language of the document. "
+                "Do NOT summarize - extract the complete text.",
+            ],
+        )
+
+        try:
+            client.files.delete(name=uploaded_file.name)
+        except Exception:
+            pass
+
+        return response.text
+
+    finally:
+        # Xóa file tạm nếu đã copy
+        if tmp_created:
+            try:
+                os.remove(upload_path)
+                os.rmdir(os.path.dirname(upload_path))
+            except Exception:
+                pass
+
+
+def _parse_retry_delay(error_msg: str) -> int:
+    """Trích xuất thời gian chờ từ error message của Gemini 429."""
+    match = re.search(r"retry in (\d+)", error_msg, re.IGNORECASE)
+    if match:
+        return int(match.group(1)) + 5  # Thêm 5s buffer
+    return 60  # Mặc định chờ 60s
+
+
+def parse_with_retry(client, file_path: str, max_retries: int = MAX_RETRIES) -> str:
+    """Parse PDF với auto-retry khi bị rate limit (429)."""
+    for attempt in range(1, max_retries + 1):
+        try:
+            return parse_pdf_with_gemini(client, file_path)
+        except Exception as e:
+            error_msg = str(e)
+            if "429" in error_msg or "RESOURCE_EXHAUSTED" in error_msg:
+                wait_time = _parse_retry_delay(error_msg)
+                print(
+                    f"    -> Rate limited (attempt {attempt}/{max_retries}). "
+                    f"Cho {wait_time}s..."
+                )
+                time.sleep(wait_time)
+            else:
+                raise  # Lỗi khác, không retry
+    raise Exception(f"Van bi rate limit sau {max_retries} lan thu lai")
 
 
 def ingest_documents():
@@ -115,6 +186,7 @@ def ingest_documents():
     client = genai.Client(api_key=gemini_api_key)
 
     documents = []
+    failed_files = []
     print(
         f"\n[1/4] Parsing PDFs with Gemini Flash "
         f"({GEMINI_MODEL})..."
@@ -125,26 +197,32 @@ def ingest_documents():
         print(f"  [{i}/{len(pdf_files)}] Parsing: {filename}")
 
         try:
-            text = parse_pdf_with_gemini(client, file_path)
+            text = parse_with_retry(client, file_path)
 
             if text and text.strip():
                 doc = Document(
                     page_content=text,
-                    metadata={"source": file_path},
+                    metadata={"source": filename},
                 )
                 documents.append(doc)
                 print(f"    -> OK ({len(text)} chars)")
             else:
                 print("    -> Empty result, skipped")
+                failed_files.append(filename)
 
             if i < len(pdf_files):
-                time.sleep(4)
+                time.sleep(DELAY_BETWEEN_FILES)
 
         except Exception as e:
             print(f"    -> Error: {e}")
-            time.sleep(5)
+            failed_files.append(filename)
+            time.sleep(DELAY_BETWEEN_FILES)
 
-    print(f"\nSuccessfully parsed {len(documents)} documents.")
+    print(f"\nSuccessfully parsed {len(documents)}/{len(pdf_files)} documents.")
+    if failed_files:
+        print(f"Failed ({len(failed_files)}):")
+        for f in failed_files:
+            print(f"  - {f}")
 
     if not documents:
         print("No documents were successfully parsed. Exiting.")
@@ -215,7 +293,8 @@ def ingest_documents():
         f"\nIngestion Complete! {len(chunks)} chunks "
         "indexed into Zilliz."
     )
-    print("Data is ready for retrieval. Run: python app.py")
+    print("Data is ready for retrieval.")
+    print("Run: uv run python3 api.py")
 
 
 if __name__ == "__main__":

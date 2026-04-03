@@ -120,26 +120,35 @@ Medical_RAG_PJI/
 
 ### Bước 3 — Chạy pipeline ingest
 
-Có 2 phương pháp tùy chọn:
+Có 3 phương pháp tùy chọn:
 
-#### Option A: Dùng Google Gemini Flash (khuyến nghị)
+#### Option A: PyPDFLoader — Local (khuyến nghị, nhanh nhất)
 
-Gemini Flash 2.0 miễn phí, xử lý tốt bảng biểu và layout phức tạp.
+Đọc PDF bằng thư viện local, **không cần API key**, chạy offline hoàn toàn.
 
 ```bash
-# Yêu cầu: GEMINI_API_KEY trong .env
-uv run python3 ingest_gemini.py
+uv run python3 ingest_local.py
 ```
 
 **Pipeline chạy qua 4 bước:**
-1. Upload từng PDF lên Gemini API → trích xuất toàn bộ text (giữ nguyên cấu trúc bảng, heading)
+1. Đọc từng PDF bằng PyPDFLoader (local, miễn phí)
 2. Chia nhỏ text thành chunk 1000 ký tự (overlap 200)
 3. Embedding mỗi chunk bằng Cohere `embed-multilingual-v3.0`
 4. Insert batch vào Zilliz Cloud (collection: `medical_rag_docs`)
 
-#### Option B: Dùng HuggingFace Vision OCR
+> **Lưu ý:** PyPDFLoader đọc text-based PDF tốt. Với scanned PDF (ảnh chụp) sẽ không trích xuất được text — dùng Option B hoặc C cho trường hợp này.
 
-Chuyển mỗi trang PDF thành ảnh PNG, gửi lên model Vision để "đọc".
+#### Option B: Google Gemini Flash (chất lượng cao nhất)
+
+Gemini Flash 2.0 xử lý tốt bảng biểu, layout phức tạp, scanned PDF. Cần `GEMINI_API_KEY` (free tier giới hạn ~15 file/ngày).
+
+```bash
+uv run python3 ingest_gemini.py
+```
+
+#### Option C: HuggingFace Vision OCR
+
+Chuyển mỗi trang PDF thành ảnh PNG, gửi lên model Vision để "đọc". Miễn phí ~1000 requests/ngày.
 
 ```bash
 # Yêu cầu: HF_TOKEN trong .env + cài poppler-utils
@@ -148,8 +157,6 @@ sudo apt install poppler-utils  # Linux
 
 uv run python3 ingest_hf.py
 ```
-
-**Pipeline tương tự Option A**, nhưng thay vì dùng Gemini thì dùng model `Llama-3.2-11B-Vision-Instruct` qua HuggingFace Inference API (miễn phí ~1000 requests/ngày).
 
 ### Bước 4 — Xác nhận dữ liệu đã được nạp
 
@@ -292,6 +299,7 @@ Medical_RAG_PJI/
 ├── pyproject.toml                 # Cấu hình dự án & dependencies (dùng với uv)
 ├── uv.lock                       # Lock file (uv tự sinh, đảm bảo reproducible)
 ├── requirements.txt               # Dependencies (fallback cho pip)
+├── ingest_local.py                # Pipeline nạp PDF local (PyPDFLoader, khuyến nghị)
 ├── ingest_gemini.py               # Pipeline nạp PDF bằng Gemini Flash
 ├── ingest_hf.py                   # Pipeline nạp PDF bằng HF Vision
 ├── core/
