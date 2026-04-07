@@ -8,6 +8,7 @@ class HealthResponse(BaseModel):
 
     status: str
     rag_initialized: bool
+    rabbitmq_connected: bool = False
 
 
 class ModelInfo(BaseModel):

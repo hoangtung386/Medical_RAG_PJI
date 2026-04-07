@@ -24,7 +24,7 @@ Nhan du lieu lam sang tu web backend, chay qua pipeline RAG, tra ve phac do dieu
 ## Tong quan he thong
 
 ```
-Web Backend                          AI Backend (repo nay)
+Web Backend                          AI Backend (this repo)
 ───────────                          ────────────────────
 snapshot_data_json ──── POST ────▶  /api/v1/process-snapshot
 (du lieu lam sang)                         │

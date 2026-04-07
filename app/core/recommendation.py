@@ -291,12 +291,33 @@ class PJIRecommendationEngine:
             "run_id": run_id,
             "recommendation_items": recommendation_items,
             "citations": citations,
+            "assessment_json": parsed.get("assessment_json"),
+            "explanation_json": parsed.get("explanation_json"),
+            "warnings_json": parsed.get("warnings_json"),
         }
 
     @staticmethod
     def _build_fallback_response(raw_text: str, docs: list) -> dict:
         """Build a minimal valid response when JSON parsing fails."""
         return {
+            "assessment_json": {
+                "overall_assessment": "Khong the phan tich — AI response khong hop le",
+                "pji_probability": "UNKNOWN",
+                "infection_stage": "UNKNOWN",
+                "key_findings": [],
+            },
+            "explanation_json": {
+                "clinical_reasoning": raw_text[:1000],
+                "evidence_summary": "Khong the phan tich tu dong",
+                "treatment_rationale": "Can danh gia lai",
+            },
+            "warnings_json": [
+                {
+                    "type": "DATA_QUALITY",
+                    "severity": "HIGH",
+                    "message": "AI response khong parse duoc JSON — ket qua co the khong chinh xac",
+                },
+            ],
             "recommendation_items": [
                 {
                     "category": "DIAGNOSTIC_TEST",

@@ -40,6 +40,9 @@ class ProcessSnapshotResponse(BaseModel):
     latency_ms: int
     run_id: str
     data_completeness: DataCompleteness
+    assessment_json: Optional[dict[str, Any]] = None
+    explanation_json: Optional[dict[str, Any]] = None
+    warnings_json: Optional[list[dict[str, Any]]] = None
     ai_recommendation_items: list[RecommendationItemResponse]
     ai_rag_citations: list[CitationResponse]
 

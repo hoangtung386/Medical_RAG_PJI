@@ -26,6 +26,14 @@ dependencies = [
     "python-dotenv>=1.0,<2",
     "pypdf>=4.0.0,<5",
     "setuptools<81",
+    # OpenTelemetry
+    "opentelemetry-api>=1.20",
+    "opentelemetry-sdk>=1.20",
+    "opentelemetry-exporter-otlp>=1.20",
+    "opentelemetry-instrumentation-fastapi>=0.41b0",
+    "opentelemetry-instrumentation-logging>=0.41b0",
+    # RabbitMQ async consumer
+    "aio-pika>=9.4,<10",
 ]
 
 [dependency-groups]

@@ -23,6 +23,24 @@ QUAN TRONG:
 
 Hay tra ve ket qua theo CHINH XAC dinh dang JSON sau (KHONG them bat ky text nao khac ngoai JSON):
 {{
+  "assessment_json": {{
+    "overall_assessment": "Nhan dinh tong quat ve tinh trang nhiem trung cua benh nhan",
+    "pji_probability": "HIGH|MODERATE|LOW",
+    "infection_stage": "ACUTE|CHRONIC|UNKNOWN",
+    "key_findings": ["Cac phat hien chinh tu du lieu lam sang"]
+  }},
+  "explanation_json": {{
+    "clinical_reasoning": "Giai thich chi tiet qua trinh suy luan lam sang",
+    "evidence_summary": "Tom tat bang chung tu xet nghiem, nuoi cay, hinh anh",
+    "treatment_rationale": "Ly do chon phac do dieu tri nay"
+  }},
+  "warnings_json": [
+    {{
+      "type": "ALLERGY_ALERT|DRUG_INTERACTION|RENAL_CHECK|GLYCEMIC_ALERT|DATA_QUALITY|RESISTANCE_CONCERN",
+      "severity": "HIGH|MEDIUM|LOW",
+      "message": "Mo ta canh bao cu the"
+    }}
+  ],
   "recommendation_items": [
     {{
       "category": "DIAGNOSTIC_TEST",

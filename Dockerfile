@@ -13,7 +13,7 @@ RUN pip install --no-cache-dir uv
 # Copy dependency files first (cache layer)
 COPY pyproject.toml uv.lock ./
 
-RUN uv sync --frozen --no-dev --no-editable
+RUN uv lock && uv sync --frozen --no-dev --no-editable
 
 # Copy source code
 COPY app/ app/

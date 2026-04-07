@@ -2,6 +2,7 @@
 
 import logging
 import logging.config
+import os
 import time
 import warnings
 from contextlib import asynccontextmanager
@@ -15,6 +16,7 @@ from app.config import settings
 from app.core.rag.retriever import AdaptiveRAG
 from app.core.recommendation import PJIRecommendationEngine
 from app.core.shared import SharedResources
+from app.worker import RecommendationWorker
 
 # Suppress pymilvus pkg_resources deprecation warning
 warnings.filterwarnings(
@@ -22,6 +24,28 @@ warnings.filterwarnings(
     message="pkg_resources is deprecated",
     category=UserWarning,
 )
+
+# ---------------------------------------------------------------------------
+# OpenTelemetry — tracing auto-instrumentation
+# ---------------------------------------------------------------------------
+
+_otel_endpoint = os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT")
+if _otel_endpoint:
+    from opentelemetry import trace
+    from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import (
+        OTLPSpanExporter,
+    )
+    from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+    from opentelemetry.sdk.resources import Resource
+    from opentelemetry.sdk.trace import TracerProvider
+    from opentelemetry.sdk.trace.export import BatchSpanProcessor
+
+    _resource = Resource.create(
+        {"service.name": os.getenv("OTEL_SERVICE_NAME", "pji-rag-service")}
+    )
+    _provider = TracerProvider(resource=_resource)
+    _provider.add_span_processor(BatchSpanProcessor(OTLPSpanExporter()))
+    trace.set_tracer_provider(_provider)
 
 # ---------------------------------------------------------------------------
 # Logging
@@ -60,6 +84,7 @@ async def lifespan(app: FastAPI):  # noqa: ARG001 — required signature
     """Initialize shared resources on startup; clean up on shutdown."""
     logger.info("Starting PJI Clinical Decision Support system...")
     t0 = time.time()
+    worker: RecommendationWorker | None = None
     try:
         resources = SharedResources()
         rag_system = AdaptiveRAG(resources)
@@ -76,11 +101,20 @@ async def lifespan(app: FastAPI):  # noqa: ARG001 — required signature
             elapsed,
             resources.cfg.collection_name,
         )
+
+        # Start RabbitMQ worker for async recommendation processing
+        worker = RecommendationWorker(pji_engine)
+        await worker.start()
+        app.state.worker = worker
+
     except Exception:
         logger.error("Initialization failed.", exc_info=True)
 
     yield  # application runs here
 
+    # Graceful shutdown
+    if worker:
+        await worker.stop()
     logger.info("Shutting down.")
 
 
@@ -102,6 +136,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Auto-instrument FastAPI (adds spans for every request)
+if _otel_endpoint:
+    FastAPIInstrumentor.instrument_app(app)
 
 # --- Routers ---
 app.include_router(health.router)
