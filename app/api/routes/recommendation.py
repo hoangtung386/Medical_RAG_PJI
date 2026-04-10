@@ -86,6 +86,9 @@ async def process_snapshot(
             latency_ms=latency_ms,
             run_id=result.get("run_id", ""),
             data_completeness=DataCompleteness(**completeness),
+            assessment_json=result.get("assessment_json"),
+            explanation_json=result.get("explanation_json"),
+            warnings_json=result.get("warnings_json"),
             ai_recommendation_items=recommendation_items,
             ai_rag_citations=citations,
         )

@@ -31,6 +31,13 @@ class Settings(BaseSettings):
     # --- Web search (Tavily) ---
     tavily_api_key: str = ""
 
+    # --- RabbitMQ ---
+    rabbitmq_url: str = ""
+    rabbitmq_exchange: str = "pji.ai.exchange"
+    rabbitmq_recommendation_queue: str = "pji.ai.recommendation.queue"
+    rabbitmq_recommendation_result_routing_key: str = "ai.recommendation.result"
+    rabbitmq_prefetch_count: int = 1
+
     # --- CORS ---
     cors_origins: list[str] = ["*"]
 
