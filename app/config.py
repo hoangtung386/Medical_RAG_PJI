@@ -39,7 +39,7 @@ class Settings(BaseSettings):
     rabbitmq_prefetch_count: int = 1
 
     # --- CORS ---
-    cors_origins: list[str] = ["*"]
+    cors_origins: list[str] = []
 
     model_config = {"env_file": ".env", "extra": "ignore"}
 
